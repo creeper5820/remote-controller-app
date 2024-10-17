@@ -1,6 +1,8 @@
 import React from 'react';
 import { View, Text, Image, TouchableOpacity, FlatList } from 'react-native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
+import { OrientationLocker, PORTRAIT } from "react-native-orientation-locker";
+
 
 import data from './data';
 import styles from './homeStyles';
@@ -8,12 +10,14 @@ import styles from './homeStyles';
 import RankScreen from './childPages/rank';
 import ShopScreen from './childPages/shop';
 import AnnouncementScreen from './childPages/announcement';
-import ActivityScreen from './childPages/activity';
+import ActivityScreen from './childPages/acitvity/activity';
+import DrivePage from './childPages/drive';
 
 import rankIcon from './images/rank.png';
 import aboutUsIcon from './images/about_us.png';
 import announcementIcon from './images/announcement.png';
 import coinIcon from './images/coin.png';
+import carIcon from './images/car.png';
 
 function TopBar({ userCoins }) {
     return (
@@ -55,7 +59,8 @@ function Header({ noticeContext, navigation }) {
 };
 
 function ActivityCard({ activityInfo, navigation }) {
-    const { eventName, manifacture, queueNumber, onlineNumber, driveNumber } = { ...activityInfo };
+    const { eventName, manifacture, onlineNumber, driveNumber } = { ...activityInfo };
+    const freeNumber = onlineNumber - driveNumber
 
     return (
         <View style={styles.cardContainer}>
@@ -67,11 +72,11 @@ function ActivityCard({ activityInfo, navigation }) {
 
             <View style={styles.cardContent}>
                 <View style={styles.carImageInfo}>
-                    <Image source={require('./images/car.png')} style={styles.carImage} />
+                    <Image source={carIcon} style={styles.carImage} />
                     <Text style={styles.manifactureText}>{manifacture}</Text>
                 </View>
                 <View style={styles.carDetails}>
-                    <Text style={styles.queueText}>当前排队 <Text style={styles.boldText}>{queueNumber}</Text> 人</Text>
+                    <Text style={styles.queueText}>空闲车辆 <Text style={freeNumber > 5 ? styles.boldTextGreen : styles.boldTextRed}>{freeNumber}</Text> 辆</Text>
                     <View style={styles.carStatus}>
                         <Text style={styles.normalText}>在线车辆 {onlineNumber} 辆</Text>
                         <Text style={styles.normalText}>驾驶中 {driveNumber} 辆</Text>
@@ -89,6 +94,7 @@ function ActivityCard({ activityInfo, navigation }) {
 function HomePage({ navigation }) {
     return (
         <>
+            <OrientationLocker orientation={PORTRAIT} />
             <TopBar userCoins={data.userCoins} />
             <View style={styles.container}>
                 <Header noticeContext={data.noticeContext} navigation={navigation} />
@@ -103,7 +109,7 @@ function HomePage({ navigation }) {
 }
 
 const HomeStack = createNativeStackNavigator();
-export default function Home() {
+export default function Home({ navigation, route }) {
     return (
         <HomeStack.Navigator>
             <HomeStack.Screen name="Home" component={HomePage} options={{ headerShown: false }} />
@@ -111,6 +117,8 @@ export default function Home() {
             <HomeStack.Screen name="Shop" component={ShopScreen} options={{ headerShown: false }} />
             <HomeStack.Screen name="Announcement" component={AnnouncementScreen} options={{ headerShown: false }} />
             <HomeStack.Screen name="Activity" component={ActivityScreen} options={{ headerShown: false }} />
+            <HomeStack.Screen name="Drive" component={DrivePage} options={{ headerShown: false }} />
         </HomeStack.Navigator>
     );
 }
+

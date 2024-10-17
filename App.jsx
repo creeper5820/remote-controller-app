@@ -9,7 +9,8 @@ import homeFillIcon from './assets/icons/homefill.png';
 import userIcon from './assets/icons/user.png';
 import userFillIcon from './assets/icons/userfill.png';
 
-import { Image } from 'react-native';
+import { Image, View } from 'react-native';
+import Orientation from 'react-native-orientation-locker';
 
 const TabBar = createBottomTabNavigator()
 const screenOptions = ({ route }) => ({
@@ -20,7 +21,7 @@ const screenOptions = ({ route }) => ({
   },
   tabBarActiveTintColor: '#0284c7',
   tabBarInactiveTintColor: 'gray',
-  headerShown: false,
+  headerShown: false
 });
 
 const App = () => {
@@ -42,3 +43,4 @@ const App = () => {
 };
 
 export default App;
+

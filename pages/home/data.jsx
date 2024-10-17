@@ -4,9 +4,8 @@ const data = {
         {
             eventName: "第1场活动",
             manifacture: "安达汽车",
-            queueNumber: 4,
             onlineNumber: 52,
-            driveNumber: 4
+            driveNumber: 7
         }
     ],
     noticeContext: "今日活动已经结束，请明日再来",

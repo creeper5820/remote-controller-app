@@ -155,10 +155,15 @@ const styles = StyleSheet.create({
         color: '#000',
         margin: 10,
     },
-    boldText: {
+    boldTextRed: {
         fontSize: 24,
         fontWeight: 'bold',
         color: '#ec3737',
+    },
+    boldTextGreen: {
+        fontSize: 24,
+        fontWeight: 'bold',
+        color: '#7DDA58',
     },
     driveButton: {
         backgroundColor: '#2196f3',
