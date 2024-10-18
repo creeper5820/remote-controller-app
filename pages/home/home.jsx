@@ -11,7 +11,7 @@ import RankScreen from './childPages/rank';
 import ShopScreen from './childPages/shop';
 import AnnouncementScreen from './childPages/announcement';
 import ActivityScreen from './childPages/acitvity/activity';
-import DrivePage from './childPages/drive';
+import DrivePage from './childPages/drive/drive';
 
 import rankIcon from './images/rank.png';
 import aboutUsIcon from './images/about_us.png';
