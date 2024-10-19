@@ -1,7 +1,7 @@
 import { View, Text, TouchableOpacity, Image } from "react-native";
 import { useEffect, useState, useRef } from "react";
 import { OrientationLocker, LANDSCAPE } from "react-native-orientation-locker";
-import styles from "./driveStyle";
+import styles from "./style";
 
 import backIcon from '../../images/back.png';
 import leftArrowIcon from "../../images/arrow_left.png";

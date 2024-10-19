@@ -33,6 +33,7 @@ const styles = StyleSheet.create({
     },
     headerItem: {
         alignItems: 'center',
+        color: '#777',
     },
     cardContainer: {
         flexDirection: 'row',
@@ -98,6 +99,7 @@ const styles = StyleSheet.create({
         marginLeft: 10,
         fontSize: 14,
         fontWeight: 'light',
+        color: '#777',
     },
     boldTextBlue: {
         fontSize: 24,

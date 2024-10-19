@@ -7,10 +7,10 @@ import { OrientationLocker, PORTRAIT } from "react-native-orientation-locker";
 import data from './data';
 import styles from './homeStyles';
 
-import RankScreen from './childPages/rank';
+import RankScreen from './childPages/rank/rank';
 import ShopScreen from './childPages/shop';
 import AnnouncementScreen from './childPages/announcement';
-import ActivityScreen from './childPages/acitvity/activity';
+import ActivityScreen from './childPages/activity/activity';
 import DrivePage from './childPages/drive/drive';
 
 import rankIcon from './images/rank.png';
