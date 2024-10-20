@@ -1,6 +1,25 @@
-import { StyleSheet } from 'react-native';
+import { StyleSheet, Dimensions } from 'react-native';
+
+const { width, height } = Dimensions.get('window');
+export const JOYSTICK_SIZE = Math.min(width, height) * 0.3;
+export const STICK_SIZE = JOYSTICK_SIZE * 0.4;
 
 const styles = StyleSheet.create({
+    joystick: {
+        width: JOYSTICK_SIZE,
+        height: JOYSTICK_SIZE,
+        borderRadius: JOYSTICK_SIZE / 2,
+        backgroundColor: 'rgba(200, 200, 200, 0.3)',
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
+    stick: {
+        width: STICK_SIZE,
+        height: STICK_SIZE,
+        borderRadius: STICK_SIZE / 2,
+        backgroundColor: '#fff',
+        position: 'absolute',
+    },
     container: {
         flex: 1,
         backgroundColor: '#424242',

@@ -1,15 +1,11 @@
-import { View, Text, TouchableOpacity, Image } from "react-native";
-import { useEffect, useState, useRef } from "react";
+import React, { useEffect, useState, useRef } from "react";
+import { View, PanResponder, Text, TouchableOpacity, Image } from 'react-native';
 import { OrientationLocker, LANDSCAPE } from "react-native-orientation-locker";
 import styles from "./style";
 
 import backIcon from '../../images/back.png';
-import leftArrowIcon from "../../images/arrow_left.png";
-import rightArrowIcon from "../../images/arrow_right.png";
-import upArrowIcon from "../../images/arrow_up.png";
-import downArrowIcon from "../../images/arrow_down.png";
 
-
+import { JOYSTICK_SIZE, STICK_SIZE } from './style';
 
 export default function DrivePage({ navigation }) {
     useEffect(() => {
@@ -23,18 +19,22 @@ export default function DrivePage({ navigation }) {
         };
     }, [navigation]);
 
+    const [stickPosition, setStickPosition] = useState({ x: 0, y: 0 });
     const [serverState, setServerState] = useState('Loading...');
-    const [messageText, setMessageText] = useState('');
     const [serverMessages, setServerMessages] = useState([]);
 
-    var ws = useRef(new WebSocket('ws://124.222.224.186:8800')).current;;
+    const ws = useRef(new WebSocket('ws://10.31.1.213:8765')).current;
+    const joystickDataRef = useRef(new Uint8Array(2));
+    const lastUpdateJoystick = useRef(Date.now());
 
     useEffect(() => {
         const serverMessagesList = [];
         ws.onopen = () => {
             setServerState('Connected to the server')
+            joystickDataRef.current[0] = 127;
+            joystickDataRef.current[1] = 127;
         };
-        ws.onclose = (e) => {
+        ws.onclose = () => {
             setServerState('Disconnected')
         };
         ws.onerror = (e) => {
@@ -43,12 +43,75 @@ export default function DrivePage({ navigation }) {
         ws.onmessage = (e) => {
             if (serverMessagesList.length > 0)
                 serverMessagesList.shift();
-            serverMessagesList.push(e.data);
-            setServerMessages([...serverMessagesList])
+
+            let message;
+            if (e.data instanceof ArrayBuffer) {
+                const uint8Array = new Uint8Array(e.data);
+                message = `Received: ${uint8Array[0]}, ${uint8Array[1]}`;
+            } else {
+                message = e.data;
+            }
+
+            serverMessagesList.push(message);
+            setServerMessages([...serverMessagesList]);
         };
-    }, [])
+
+        const interval = setInterval(() => {
+            ws.send(joystickDataRef.current);
+        }, 100);
+        return () => clearInterval(interval);
+
+    }, [lastUpdateJoystick]);
 
 
+
+    const panResponder = useRef(
+        PanResponder.create({
+            onStartShouldSetPanResponder: () => true,
+            onMoveShouldSetPanResponder: () => true,
+            onPanResponderGrant: () => {
+                console.log('Grabbed');
+                joystickDataRef.current[0] = 127;
+                joystickDataRef.current[1] = 127;
+            },
+            onPanResponderMove: (_, gestureState) => {
+                if (Date.now() - lastUpdateJoystick.current > 100) {
+                    const { dx, dy } = gestureState;
+                    const distance = Math.sqrt(dx * dx + dy * dy);
+                    const angle = Math.atan2(dy, dx);
+
+                    const maxDistance = JOYSTICK_SIZE / 2 - STICK_SIZE / 2;
+                    const limitedDistance = Math.min(distance, maxDistance);
+
+                    const newX = Math.cos(angle) * limitedDistance;
+                    const newY = Math.sin(angle) * limitedDistance;
+
+                    setStickPosition({ x: newX, y: newY });
+
+                    const normalizedX = (Math.pow(newX, 5) / Math.pow(maxDistance, 5)) / 2 + 1;
+                    const normalizedY = -Math.pow(newY, 5) / Math.pow(maxDistance, 5) + 1;
+
+                    const controlX = Math.round(normalizedX * 127.5);
+                    const controlY = Math.round(normalizedY * 127.5);
+
+                    console.log(controlY);
+
+                    joystickDataRef.current[0] = controlX;
+                    joystickDataRef.current[1] = controlY;
+
+
+                    const now = Date.now();
+                    lastUpdateJoystick.current = now;
+                }
+            },
+            onPanResponderRelease: () => {
+                setStickPosition({ x: 0, y: 0 });
+                console.log('Released');
+                joystickDataRef.current[0] = 127;
+                joystickDataRef.current[1] = 127;
+            },
+        })
+    ).current;
 
     return (
         <View style={styles.container}>
@@ -59,10 +122,12 @@ export default function DrivePage({ navigation }) {
                 <Text style={styles.backText}>返回</Text>
             </TouchableOpacity>
 
-
             <View style={styles.leaderboard}>
-                <Text style={styles.leaderboardTitle}>在线用户</Text>
-                <Text style={styles.leaderboardItem}>{serverMessages}</Text>
+                <Text style={styles.leaderboardTitle}>[DEBUG INFO]</Text>
+                <Text style={styles.leaderboardItem}>{serverState}</Text>
+                {serverMessages.map((message, index) => (
+                    <Text key={index} style={styles.leaderboardItem}>{message}</Text>
+                ))}
             </View>
 
             <View style={styles.infoBar}>
@@ -71,24 +136,20 @@ export default function DrivePage({ navigation }) {
             </View>
 
             <View style={styles.controls}>
-                <View style={styles.controlButtonContainerLeft}>
-                    <TouchableOpacity style={styles.controlButton} onPressIn={() => ws.send('10')} onPressOut={() => ws.send('11')}>
-                        <Image source={leftArrowIcon} style={styles.buttonIcon} />
-                    </TouchableOpacity>
-                    <TouchableOpacity style={styles.controlButton} onPressIn={() => ws.send('20')} onPressOut={() => ws.send('21')}>
-                        <Image source={rightArrowIcon} style={styles.buttonIcon} />
-                    </TouchableOpacity>
-                </View>
-                <View style={styles.controlButtonContainerRight}>
-                    <TouchableOpacity style={styles.controlButton} onPressIn={() => ws.send('30')} onPressOut={() => ws.send('31')}>
-                        <Image source={upArrowIcon} style={styles.buttonIcon} />
-                    </TouchableOpacity>
-                    <TouchableOpacity style={styles.controlButton} onPressIn={() => ws.send('40')} onPressOut={() => ws.send('41')} >
-                        <Image source={downArrowIcon} style={styles.buttonIcon} />
-                    </TouchableOpacity>
+                <View style={styles.joystick} {...panResponder.panHandlers}>
+                    <View
+                        style={[
+                            styles.stick,
+                            {
+                                transform: [
+                                    { translateX: stickPosition.x },
+                                    { translateY: stickPosition.y },
+                                ],
+                            },
+                        ]}
+                    />
                 </View>
             </View>
         </View>
-    );
-
+    )
 }

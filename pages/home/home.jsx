@@ -8,10 +8,10 @@ import data from './data';
 import styles from './homeStyles';
 
 import RankScreen from './childPages/rank/rank';
-import ShopScreen from './childPages/shop';
 import AnnouncementScreen from './childPages/announcement';
 import ActivityScreen from './childPages/activity/activity';
 import DrivePage from './childPages/drive/drive';
+import ChargePage from '../../components/charge/charge'
 
 import rankIcon from './images/rank.png';
 import aboutUsIcon from './images/about_us.png';
@@ -19,11 +19,11 @@ import announcementIcon from './images/announcement.png';
 import coinIcon from './images/coin.png';
 import carIcon from './images/car.png';
 
-function TopBar({ userCoins }) {
+function TopBar({ userCoins, navigation }) {
     return (
         <View style={styles.topBar}>
             <Image source={coinIcon} style={styles.topBarCarIcon} />
-            <Text style={styles.topBarText}>我的金币: {userCoins}</Text>
+            <Text onPress={() => navigation.navigate('Charge')} style={styles.topBarText}>我的金币: {userCoins}</Text>
         </View>
     )
 }
@@ -39,7 +39,7 @@ function Header({ noticeContext, navigation }) {
                     <Text style={styles.headerText}>排行榜</Text>
                 </View>
                 <View style={styles.headerItem}>
-                    <TouchableOpacity style={styles.headerIconContainerRed} onPress={() => navigation.navigate('Shop')}>
+                    <TouchableOpacity style={styles.headerIconContainerRed} onPress={() => navigation.navigate('Charge')}>
                         <Image source={aboutUsIcon} style={styles.headerIcon} />
                     </TouchableOpacity>
                     <Text style={styles.headerText}>商城</Text>
@@ -95,7 +95,7 @@ function HomePage({ navigation }) {
     return (
         <>
             <OrientationLocker orientation={PORTRAIT} />
-            <TopBar userCoins={data.userCoins} />
+            <TopBar userCoins={data.userCoins} navigation={navigation} />
             <View style={styles.container}>
                 <Header noticeContext={data.noticeContext} navigation={navigation} />
                 <FlatList
@@ -114,7 +114,7 @@ export default function Home({ navigation, route }) {
         <HomeStack.Navigator>
             <HomeStack.Screen name="Home" component={HomePage} options={{ headerShown: false }} />
             <HomeStack.Screen name="Rank" component={RankScreen} options={{ headerShown: false }} />
-            <HomeStack.Screen name="Shop" component={ShopScreen} options={{ headerShown: false }} />
+            <HomeStack.Screen name="Charge" component={ChargePage} options={{ headerShown: false }} />
             <HomeStack.Screen name="Announcement" component={AnnouncementScreen} options={{ headerShown: false }} />
             <HomeStack.Screen name="Activity" component={ActivityScreen} options={{ headerShown: false }} />
             <HomeStack.Screen name="Drive" component={DrivePage} options={{ headerShown: false }} />
