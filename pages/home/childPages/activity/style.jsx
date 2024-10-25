@@ -95,6 +95,10 @@ const styles = StyleSheet.create({
         fontWeight: 'bold',
         color: '#7DDA58',
     },
+    normalTextBlue: {
+        fontWeight: 'bold',
+        color: '#2196f3',
+    },
     smallText: {
         marginLeft: 10,
         fontSize: 14,
@@ -124,7 +128,11 @@ const styles = StyleSheet.create({
         fontSize: 20,
         alignSelf: 'center',
     },
-
+    loadingContainer: {
+        flex: 1,
+        marginTop: 50,
+        alignItems: 'center',
+    }
 });
 
 export default styles;

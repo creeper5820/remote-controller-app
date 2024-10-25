@@ -1,8 +1,7 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { View, Text, Image, TouchableOpacity, FlatList, Button } from 'react-native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 
-import data from './data';
 import styles from './style';
 
 import backIcon from '../../images/back.png';
@@ -19,16 +18,16 @@ function TopBar({ navigation, eventName }) {
     )
 }
 
-function Header() {
+function Header({ freeNumber, drivingNumber }) {
     return (
         <View style={styles.header}>
             <View style={styles.headerContainer}>
                 <View style={styles.headerItem}>
-                    <Text style={styles.boldTextBlue} >10</Text>
+                    <Text style={styles.boldTextBlue} >{freeNumber}</Text>
                     <Text style={styles.headerItem} >空闲</Text>
                 </View>
                 <View style={styles.headerItem}>
-                    <Text style={styles.boldTextBlack} >4</Text>
+                    <Text style={styles.boldTextBlack} >{drivingNumber}</Text>
                     <Text style={styles.headerItem} >正在驾驶</Text>
                 </View>
             </View>
@@ -38,7 +37,7 @@ function Header() {
 
 
 function ActivityCard({ carInfo, navigation }) {
-    const { eventName, id, status, battery } = { ...carInfo };
+    const { name, id, status, battery } = { ...carInfo };
 
     return (
         <View style={styles.cardContainer}>
@@ -47,12 +46,12 @@ function ActivityCard({ carInfo, navigation }) {
             </View>
             <View style={styles.cardContent}>
                 <View style={styles.carDetails}>
-                    <Text style={styles.eventTitle}>{eventName}</Text>
+                    <Text style={styles.eventTitle}>{name}</Text>
                     <Text style={styles.smallText}>编号: {id}</Text>
                     <View style={styles.carStatus}>
                         <View style={styles.carInfo}>
                             <Text style={styles.normalText}>状态</Text>
-                            <Text style={status ? styles.normalTextGreen : styles.normalTextRed} >{status ? '正常' : '离线'}</Text>
+                            <Text style={status === "available" ? styles.normalTextGreen : (status === "driving" ? styles.normalTextBlue : styles.normalTextRed)} >{status === "available" ? '空闲' : (status === "driving" ? '被驾驶中' : '离线')}</Text>
                         </View>
                         <View style={styles.carInfo}>
                             <Text style={styles.normalText}>电量</Text>
@@ -69,18 +68,69 @@ function ActivityCard({ carInfo, navigation }) {
 };
 
 
+function CarList({ navigation, carData, loadingStatus, requestError }) {
+    switch (loadingStatus) {
+        case 1:
+            {
+                const drivingNumber = carData.filter((item) => item.status === "driving").length;
+                return (
+                    <>
+                        <Header freeNumber={carData.length} drivingNumber={drivingNumber} />
+                        <FlatList
+                            data={carData}
+                            renderItem={({ item }) => <ActivityCard carInfo={item} navigation={navigation} />}
+                            keyExtractor={(item, index) => index.toString()}
+                        />
+                    </>
+                );
+            }
+        case -1:
+            return (
+                <View style={styles.loadingContainer}>
+                    <Text style={styles.loadingText}>加载数据失败: {requestError}</Text>
+                    <Text> 请尝试重新加载</Text>
+                </View>
+            );
+        default:
+            return (
+                <View style={styles.loadingContainer}>
+                    <Text style={styles.loadingText}>加载数据中...</Text>
+                </View>
+            );
+    }
+}
+
+
 export default function ActivityPage({ route, navigation }) {
-    const { eventName, manifacture, queueNumber, onlineNumber, driveNumber } = { ...route.params.ActivityInfo };
+    const { eventName, manufacture, onlineNumber, driveNumber, id } = { ...route.params.ActivityInfo };
+
+    const axios = require('axios').default;
+
+    const [carInfoState, setCarInfoState] = React.useState(0);
+    const [carDataArray, setCarDataArray] = React.useState([]);
+    const [requestError, setRequestError] = React.useState("");
+
+    useEffect(() => {
+        axios.get(`http://10.31.3.103:8000/api/activity/${id}/detail`, {
+        }).then(function (response) {
+            const status = response.status;
+            const data = response.data.vehicles;
+            console.log(status);
+            console.log(data);
+            setCarDataArray(data);
+            setCarInfoState(1);
+        }).catch(function (error) {
+            setCarInfoState(-1);
+            setRequestError(error.message);
+            console.log(error);
+        });
+    }, []);
+
     return (
         <>
             <TopBar navigation={navigation} eventName={eventName} />
             <View style={styles.container}>
-                <Header />
-                <FlatList
-                    data={data.carInfoArray}
-                    renderItem={({ item }) => <ActivityCard carInfo={item} navigation={navigation} />}
-                    keyExtractor={(item, index) => index.toString()}
-                />
+                <CarList navigation={navigation} carData={carDataArray} loadingStatus={carInfoState} requestError={requestError} />
             </View>
         </>
     );

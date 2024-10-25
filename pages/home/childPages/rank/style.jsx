@@ -103,6 +103,11 @@ const styles = StyleSheet.create({
         fontWeight: 'bold',
         color: '#000',
     },
+    loadingContainer: {
+        flex: 1,
+        marginTop: 50,
+        alignItems: 'center',
+    }
 });
 
 export default styles;

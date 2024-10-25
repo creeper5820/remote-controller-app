@@ -20,7 +20,7 @@ export default function DrivePage({ navigation }) {
     }, [navigation]);
 
     const [stickPosition, setStickPosition] = useState({ x: 0, y: 0 });
-    const [serverState, setServerState] = useState('Loading...');
+    const serverStateRef = useRef(0);
     const [serverMessages, setServerMessages] = useState([]);
 
     const ws = useRef(new WebSocket('ws://10.31.1.213:8765')).current;
@@ -29,16 +29,22 @@ export default function DrivePage({ navigation }) {
 
     useEffect(() => {
         const serverMessagesList = [];
+        const interval = setInterval(() => {
+            if (serverStateRef.current === 1) {
+                ws.send(joystickDataRef.current);
+                console.log(joystickDataRef.current);
+            }
+        }, 100);;
         ws.onopen = () => {
-            setServerState('Connected to the server')
+            serverStateRef.current = 1;
             joystickDataRef.current[0] = 127;
             joystickDataRef.current[1] = 127;
         };
         ws.onclose = () => {
-            setServerState('Disconnected')
+            serverStateRef.current = 0;
         };
         ws.onerror = (e) => {
-            setServerState(e.message);
+            serverStateRef.current = -1;
         };
         ws.onmessage = (e) => {
             if (serverMessagesList.length > 0)
@@ -56,12 +62,11 @@ export default function DrivePage({ navigation }) {
             setServerMessages([...serverMessagesList]);
         };
 
-        const interval = setInterval(() => {
-            ws.send(joystickDataRef.current);
-        }, 100);
-        return () => clearInterval(interval);
-
-    }, [lastUpdateJoystick]);
+        return () => {
+            clearInterval(interval);
+            ws.close();
+        }
+    }, []);
 
 
 
@@ -88,13 +93,12 @@ export default function DrivePage({ navigation }) {
 
                     setStickPosition({ x: newX, y: newY });
 
-                    const normalizedX = (Math.pow(newX, 5) / Math.pow(maxDistance, 5)) / 2 + 1;
-                    const normalizedY = -Math.pow(newY, 5) / Math.pow(maxDistance, 5) + 1;
+                    const normalizedX = (newX / maxDistance / 6) + 1;
+                    const normalizedY = -(newY / maxDistance / 2) + 1;
 
                     const controlX = Math.round(normalizedX * 127.5);
                     const controlY = Math.round(normalizedY * 127.5);
 
-                    console.log(controlY);
 
                     joystickDataRef.current[0] = controlX;
                     joystickDataRef.current[1] = controlY;
@@ -124,7 +128,7 @@ export default function DrivePage({ navigation }) {
 
             <View style={styles.leaderboard}>
                 <Text style={styles.leaderboardTitle}>[DEBUG INFO]</Text>
-                <Text style={styles.leaderboardItem}>{serverState}</Text>
+                <Text style={styles.leaderboardItem}>{serverStateRef.current}</Text>
                 {serverMessages.map((message, index) => (
                     <Text key={index} style={styles.leaderboardItem}>{message}</Text>
                 ))}

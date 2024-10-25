@@ -141,7 +141,7 @@ const styles = StyleSheet.create({
         margin: 10,
         alignSelf: 'center',
     },
-    manifactureText: {
+    manufactureText: {
         color: '#333',
         margin: 10,
         alignSelf: 'center',
@@ -181,6 +181,26 @@ const styles = StyleSheet.create({
     carStatus: {
         flexDirection: 'row',
         justifyContent: 'space-between',
+    },
+    loadingContainer: {
+        flex: 1,
+        marginTop: 50,
+        alignItems: 'center',
+    },
+    refreshButton: {
+        backgroundColor: 'rgba(30, 100, 255 , 0.8)',
+        position: 'absolute',
+        bottom: 20,
+        right: 20,
+        width: 60,
+        height: 60,
+        borderRadius: 25,
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
+    refreshIcon: {
+        width: 40,
+        height: 40,
     },
 });
 

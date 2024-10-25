@@ -1,8 +1,7 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { View, Text, Image, StyleSheet, FlatList } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import styles from './style';
-import data from './data';
 import avatarIcon from '../../images/avatar.jpg';
 
 
@@ -31,7 +30,53 @@ const LeaderboardItem = ({ item, index }) => (
     </View>
 );
 
-export default function Component() {
+function RankList({ LeaderboardData, loadingStatus }) {
+    switch (loadingStatus) {
+        case 1:
+            return (
+                <FlatList
+                    data={LeaderboardData}
+                    renderItem={LeaderboardItem}
+                    keyExtractor={(item, index) => index.toString()}
+                />
+            );
+        case -1:
+            return (
+                <View style={styles.loadingContainer}>
+                    <Text style={styles.loadingText}>加载数据失败,请重新加载</Text>
+                </View>
+            );
+        default:
+            return (
+                <View style={styles.loadingContainer}>
+                    <Text style={styles.loadingText}>加载数据中...</Text>
+                </View>
+            );
+    }
+}
+
+export default function Rank() {
+    const axios = require('axios').default;
+
+    const [rankInfoState, setRankInfoState] = React.useState(0);
+    const [rankDataArray, setRankDataArray] = React.useState([]);
+
+    useEffect(() => {
+        axios.get('http://10.31.3.103:8000/api/ranking')
+            .then(function (response) {
+                const status = response.status;
+                const data = response.data;
+                console.log(status);
+                console.log(data);
+                setRankDataArray(data);
+                setRankInfoState(1);
+            })
+            .catch(function (error) {
+                setRankInfoState(-1);
+                console.log(error);
+            });
+    }, []);
+
     return (
         <SafeAreaView style={styles.container}>
             <View style={styles.header}>
@@ -62,12 +107,10 @@ export default function Component() {
                     <Text style={[styles.leaderboardHeaderText, styles.activeTab]}>今日榜</Text>
                     <Text style={styles.leaderboardHeaderText}>昨日榜</Text>
                 </View>
-                <FlatList
-                    data={data}
-                    renderItem={LeaderboardItem}
-                    keyExtractor={(item) => item.id}
-                />
+                <RankList LeaderboardData={rankDataArray} loadingStatus={rankInfoState} />
             </View>
+
+
         </SafeAreaView>
     );
 }
