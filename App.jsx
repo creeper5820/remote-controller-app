@@ -1,4 +1,4 @@
-import React, { useEffect, useReducer, createContext, useState } from 'react';
+import React, { useEffect, useReducer, createContext, useState, useContext } from 'react';
 import Home from './pages/home/home';
 import Mine from './pages/mine/mine';
 import WebrtcPlayer from './pages/test/test';
@@ -17,13 +17,13 @@ import userIcon from './icons/user.png';
 import userFillIcon from './icons/userfill.png';
 
 import { Image, View, Text } from 'react-native';
-import { get } from 'react-native/Libraries/TurboModule/TurboModuleRegistry';
 
 const TabBar = createBottomTabNavigator()
 const LoginStack = createNativeStackNavigator();
 
 export const AuthContext = createContext();
 
+export const BaseUrl = 'http://10.31.1.213:8000';
 
 const screenOptions = ({ route }) => ({
 	tabBarIcon: ({ focused, color, size }) => {
@@ -36,26 +36,56 @@ const screenOptions = ({ route }) => ({
 	headerShown: false
 });
 
-const axios = require('axios').default;
 
 const reducer = (state, action) => {
+	console.log('[App] reducer called with state =', state);
+	console.log('[App] reducer called with action =', action);
 	switch (action.type) {
 		case 'login':
-			return { ...state, token: action.token };
+			console.log('[App] reducer: login');
 		case 'register':
-			return { ...state, token: action.token };
+			console.log('[App] reducer: register');
 		case 'reactive':
-			return { ...state, token: action.token };
+			console.log('[App] reducer: reactive');
 		default:
-			return state;
+			console.log('[App] reducer: default');
+			return { ...state, token: action.token };
 	}
 };
-
 
 const App = () => {
 	const [state, dispatch] = useReducer(reducer, { token: null });
 
-	getToken().then(token => dispatch({ type: 'reactive', token: token }));
+	const reactiveToken = async () => {
+		console.log('[App] reactiveToken called');
+		try {
+			const storedToken = await getToken();
+			console.log('[App] reactiveToken: storedToken =', storedToken);
+			if (!storedToken) {
+				console.log('[App] back to login');
+				return;
+			}
+			const axios = require('axios').default;
+			const response = await axios.get(`${BaseUrl}/api/reactive?token=${storedToken}`);
+			console.log('[App] reactiveToken: axios response =', response.data);
+			const { result, token } = response.data;
+			if (result === 200) {
+				dispatch({ type: 'reactive', token });
+				console.log('[App] reactiveToken: reactive success');
+			} else {
+				dispatch({ type: 'reactive', token: null });
+				console.log('[App] reactiveToken: reactive failed');
+			}
+		} catch (error) {
+			dispatch({ type: 'reactive', token: null });
+			console.error('[App] reactiveToken failed:', error);
+		}
+	}
+
+	useEffect(() => {
+		// saveToken({ token: "aaaa" });
+		reactiveToken();
+	}, []);
 
 	return (
 		<NavigationContainer>
@@ -64,7 +94,7 @@ const App = () => {
 					(
 						<TabBar.Navigator initialRouteName="Home" screenOptions={screenOptions}>
 							<TabBar.Screen name="主页" component={Home} />
-							<TabBar.Screen name="个人中心" component={Mine} />
+							<TabBar.Screen name="我的" component={Mine} />
 						</TabBar.Navigator>
 					) :
 					(

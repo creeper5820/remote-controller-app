@@ -1,6 +1,7 @@
 import React, { useEffect } from 'react';
 import { View, Text, Image, TouchableOpacity, FlatList, Button } from 'react-native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
+import { BaseUrl } from '../../../../App';
 
 import styles from './style';
 
@@ -111,7 +112,7 @@ export default function ActivityPage({ route, navigation }) {
     const [requestError, setRequestError] = React.useState("");
 
     useEffect(() => {
-        axios.get(`http://10.31.3.103:8000/api/activity/${id}/detail`, {
+        axios.get(`${BaseUrl}/api/activity/${id}/detail`, {
         }).then(function (response) {
             const status = response.status;
             const data = response.data.vehicles;

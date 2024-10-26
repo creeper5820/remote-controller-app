@@ -3,6 +3,7 @@ import { View, Text, Image, StyleSheet, FlatList } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import styles from './style';
 import avatarIcon from '../../images/avatar.jpg';
+import { BaseUrl } from '../../../../App';
 
 
 const MedalIcon = ({ position }) => {
@@ -62,7 +63,7 @@ export default function Rank() {
     const [rankDataArray, setRankDataArray] = React.useState([]);
 
     useEffect(() => {
-        axios.get('http://10.31.3.103:8000/api/ranking')
+        axios.get(`${BaseUrl}/api/ranking`)
             .then(function (response) {
                 const status = response.status;
                 const data = response.data;

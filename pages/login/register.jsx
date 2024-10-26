@@ -1,6 +1,7 @@
 import React, { useState, useContext, useEffect } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet } from 'react-native';
-import { AuthContext } from '../../App';
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, DrawerLayoutAndroid } from 'react-native';
+import { AuthContext, BaseUrl } from '../../App';
+import { saveToken } from './tokenStorage';
 
 // 模拟MD3的颜色系统
 const colors = {
@@ -17,47 +18,50 @@ export default function RegisterPage({ navigation }) {
     const [confirmPassword, setConfirmPassword] = useState('');
     const [renderContent, setRenderContent] = useState(null);
     const [registerState, setRegisterState] = useState(null);
+    const [registerToken, setRegisterToken] = useState(null);
 
     const { state, dispatch } = useContext(AuthContext);
 
     async function handleRegister() {
+        console.log('[RegisterPage] handleRegister start');
         setRegisterState('REGISTER_IN_PROGRESS');
-
         try {
             const axios = require('axios').default;
+            console.log('[RegisterPage] handleRegister axios start');
             const response = await axios.get(
-                `http://10.31.3.103:8000/api/register?username=${username}&password=${password}`
+                `${BaseUrl}/api/register?username=${username}&password=${password}`
             );
             const { result, token } = response.data;
+            console.log('[RegisterPage] handleRegister response result: [', result, ']', 'token: [', token, ']');
             if (result === 200) {
-                await saveToken(token);
-                dispatch({ type: 'register', token: token });
+                setRegisterToken(token);
                 setRegisterState('REGISTER_SUCCESS');
-            } else {
-                setRegisterState('REGISTER_FAILED');
-            }
+            } else if (result === 300) setRegisterState('USER_HAS_REGISTERED');
+            else setRegisterState('REGISTER_FAILED');
         } catch (error) {
+            console.error('[RegisterPage] handleRegister error', error);
             setRegisterState('REGISTER_FAILED');
         }
 
     }
 
-    useEffect((registerState, setRenderContent) => {
-
-
+    useEffect(() => {
         if (username.length !== 11) {
+            setRegisterState(null);
             setRenderContent(
                 <Text style={[styles.warningButton, styles.warningText]}>
                     请输入正确的手机号
                 </Text>
             );
         } else if (password.length < 6 || password.length > 16) {
+            setRegisterState(null);
             setRenderContent(
                 <Text style={[styles.warningButton, styles.warningText]}>
                     密码长度应大于6位 小于16位
                 </Text>
             );
         } else if (password !== confirmPassword) {
+            setRegisterState(null);
             setRenderContent(
                 <Text style={[styles.warningButton, styles.warningText]}>
                     密码不一致
@@ -74,12 +78,31 @@ export default function RegisterPage({ navigation }) {
                         </TouchableOpacity>
                     );
                     break;
+                case 'USER_HAS_REGISTERED':
+                    setRenderContent(
+                        <TouchableOpacity style={styles.warningButton}>
+                            <Text style={styles.warningText}>用户已注册，请直接登录</Text>
+                        </TouchableOpacity>
+                    )
+                    break;
                 case 'REGISTER_FAILED':
                     setRenderContent(
                         <TouchableOpacity style={styles.warningButton} onPress={handleRegister}>
                             <Text style={styles.warningText}>注册失败,请重试</Text>
                         </TouchableOpacity>
                     );
+                    break;
+                case 'REGISTER_SUCCESS':
+                    setRenderContent(
+                        <View style={styles.successButton}>
+                            <Text style={styles.successText}>注册成功</Text>
+                        </View>
+                    )
+                    saveToken(registerToken);
+                    setTimeout(() => {
+                        dispatch({ type: 'register', token: registerToken });
+                        console.log('[RegisterPage] handleRegister end');
+                    }, 1000);
                     break;
                 default:
                     setRenderContent(
@@ -100,7 +123,7 @@ export default function RegisterPage({ navigation }) {
                 <TextInput
                     style={styles.input}
                     value={username}
-                    onChangeText={setUsername}
+                    onChangeText={(text) => text.length < 12 ? setUsername(text.replace(/[^0-9]/g, '')) : username}
                     keyboardType="phone-pad"
                     placeholder="请输入手机号"
                     placeholderTextColor={colors.outline}
@@ -200,6 +223,20 @@ const styles = StyleSheet.create({
     },
     warningText: {
         color: 'red',
+        fontSize: 16,
+        fontWeight: 'bold',
+        textAlign: 'center',
+    }, successButton: {
+        backgroundColor: 'white',
+        borderColor: colors.primary,
+        borderWidth: 1,
+        borderRadius: 100,
+        padding: 12,
+        alignItems: 'center',
+        marginTop: 24,
+    },
+    successText: {
+        color: colors.primary,
         fontSize: 16,
         fontWeight: 'bold',
         textAlign: 'center',

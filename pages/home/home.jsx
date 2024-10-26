@@ -2,6 +2,7 @@ import React, { useEffect } from 'react';
 import { View, Text, Image, TouchableOpacity, FlatList } from 'react-native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { OrientationLocker, PORTRAIT } from "react-native-orientation-locker";
+import { BaseUrl } from '../../App';
 
 import styles from './homeStyles';
 
@@ -147,8 +148,8 @@ function HomePage({ navigation }) {
     const [requestError, setRequestError] = React.useState("");
 
     useEffect(() => {
-        if (homeInfoState !== 1) { 
-            axios.get('http://10.31.3.103:8000/api/homepage')
+        if (homeInfoState !== 1) {
+            axios.get(`${BaseUrl}/api/homepage`)
                 .then(function (response) {
                     const status = response.status;
                     const data = response.data;
@@ -182,7 +183,7 @@ const HomeStack = createNativeStackNavigator();
 export default function Home({ navigation, route }) {
     return (
         <HomeStack.Navigator>
-            <HomeStack.Screen name="Home" component={HomePage} options={{ headerShown: false }} />
+            <HomeStack.Screen name="HomeScreen" component={HomePage} options={{ headerShown: false }} />
             <HomeStack.Screen name="Rank" component={RankScreen} options={{ headerShown: false }} />
             <HomeStack.Screen name="Charge" component={ChargePage} options={{ headerShown: false }} />
             <HomeStack.Screen name="Announcement" component={AnnouncementScreen} options={{ headerShown: false }} />

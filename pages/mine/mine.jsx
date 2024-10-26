@@ -1,7 +1,8 @@
-import React from 'react';
+import React, { useContext } from 'react';
 import { View, Text, Image, TouchableOpacity, FlatList } from 'react-native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { AuthContext, BaseUrl } from '../../App';
 
 
 import styles from './style';
@@ -11,6 +12,13 @@ import goToIcon from "../../icons/goto.png";
 import ChargePage from '../../components/charge/charge'
 
 function MinePage({ navigation }) {
+    const { state, dispatch } = useContext(AuthContext);
+
+    const logout = () => {
+        console.log('[Mine] logout');
+        dispatch({ type: 'logout', token: null });
+    };
+
     return (
         <SafeAreaView style={styles.container}>
             <View style={styles.header}>
@@ -52,6 +60,9 @@ function MinePage({ navigation }) {
                 <TouchableOpacity style={styles.userOperationItem}>
                     <Text style={styles.userOperationText}>关于</Text>
                     <Image source={goToIcon} style={styles.goToIcon} />
+                </TouchableOpacity>
+                <TouchableOpacity style={styles.logoutButton} onPress={logout}>
+                    <Text style={styles.logoutText}>退出登录</Text>
                 </TouchableOpacity>
             </View>
         </SafeAreaView>

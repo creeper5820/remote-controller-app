@@ -82,7 +82,19 @@ const styles = StyleSheet.create({
     goToIcon: {
         width: 20,
         height: 20
-    }
+    },
+    logoutButton: {
+        backgroundColor: '#f44336',
+        paddingVertical: 15,
+        margin: 10,
+        borderRadius: 5,
+    },
+    logoutText: {
+        color: '#fff',
+        fontSize: 16,
+        textAlign: 'center',
+    },
+
 });
 
 export default styles;
