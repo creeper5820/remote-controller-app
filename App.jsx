@@ -83,7 +83,6 @@ const App = () => {
 	}
 
 	useEffect(() => {
-		// saveToken({ token: "aaaa" });
 		reactiveToken();
 	}, []);
 
@@ -95,6 +94,7 @@ const App = () => {
 						<TabBar.Navigator initialRouteName="Home" screenOptions={screenOptions}>
 							<TabBar.Screen name="主页" component={Home} />
 							<TabBar.Screen name="我的" component={Mine} />
+							<TabBar.Screen name="测试" component={WebrtcPlayer} />
 						</TabBar.Navigator>
 					) :
 					(

@@ -9,6 +9,7 @@ const styles = StyleSheet.create({
         display: 'flex',
         flexDirection: 'row',
         backgroundColor: '#2196f3',
+        justifyContent: 'space-between',
         padding: 15,
     },
     topBarCarIcon: {
@@ -21,7 +22,13 @@ const styles = StyleSheet.create({
     },
     topBarText: {
         marginLeft: 10,
-        marginRight: 5,
+        marginRight: 'auto',
+        textAlignVertical: 'center',
+        color: '#fff',
+        fontSize: 17,
+        fontWeight: 'light',
+    },
+    topBarWelcomeText: {
         textAlignVertical: 'center',
         color: '#fff',
         fontSize: 17,

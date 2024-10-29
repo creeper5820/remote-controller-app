@@ -1,8 +1,8 @@
 import React, { useEffect } from 'react';
-import { View, Text, Image, TouchableOpacity, FlatList } from 'react-native';
+import { View, Text, Image, TouchableOpacity, FlatList, RefreshControl } from 'react-native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { OrientationLocker, PORTRAIT } from "react-native-orientation-locker";
-import { BaseUrl } from '../../App';
+import { BaseUrl, AuthContext } from '../../App';
 
 import styles from './homeStyles';
 
@@ -21,11 +21,13 @@ import refreshIcon from './images/reload.png';
 
 
 
-function TopBar({ userCoins, navigation }) {
+function TopBar({ userCoins, userName, navigation }) {
+    userCoins = userCoins > 10000 ? (userCoins / 10000).toFixed(1) + '万' : userCoins
     return (
         <View style={styles.topBar}>
             <Image source={coinIcon} style={styles.topBarCarIcon} />
             <Text onPress={() => navigation.navigate('Charge')} style={styles.topBarText}>我的金币: {userCoins}</Text>
+            <Text style={styles.topBarWelcomeText}>欢迎您， {userName}</Text>
         </View>
     )
 }
@@ -44,13 +46,13 @@ function Header({ noticeContext, navigation }) {
                     <TouchableOpacity style={styles.headerIconContainerRed} onPress={() => navigation.navigate('Charge')}>
                         <Image source={aboutUsIcon} style={styles.headerIcon} />
                     </TouchableOpacity>
-                    <Text style={styles.headerText}>商城</Text>
+                    <Text style={styles.headerText}>充值</Text>
                 </View>
                 <View style={styles.headerItem}>
                     <TouchableOpacity style={styles.headerIconContainerYellow} onPress={() => navigation.navigate('Announcement')}>
                         <Image source={announcementIcon} style={styles.headerIcon} />
                     </TouchableOpacity>
-                    <Text style={styles.headerText}>公告</Text>
+                    <Text style={styles.headerText}>活动</Text>
                 </View>
             </View>
             <View style={styles.announcementContainer}>
@@ -94,87 +96,97 @@ function ActivityCard({ activityInfo, navigation }) {
     )
 };
 
-function InfoTab({ navigation, activityInfo, loadingStatus, requestError, userCoins, announcement }) {
-    switch (loadingStatus) {
-        case 1:
-            return (<>
-                <TopBar userCoins={userCoins} navigation={navigation} />
+function InfoTab({ homePageData, requestError, refreshing, refreshHomeInfo, navigation }) {
+
+    if (requestError)
+        return (
+            <>
+                <TopBar userCoins={"-"} navigation={navigation} userName={"-"} />
                 <View style={styles.container}>
-                    <Header noticeContext={announcement} navigation={navigation} />
-                    <FlatList
-                        data={activityInfo}
-                        renderItem={({ item }) => <ActivityCard activityInfo={item} navigation={navigation} />}
-                        keyExtractor={(item, index) => index.toString()}
-                    />
-                </View>
-            </>
-            );
-        case -1:
-            return (
-                <>
-                    <TopBar userCoins={"-"} navigation={navigation} />
-                    <View style={styles.container}>
-                        <Header noticeContext={"加载失败"} navigation={navigation} />
-                        <View style={styles.loadingContainer}>
+                    <Header noticeContext={"加载失败"} navigation={navigation} />
+                    <FlatList contentContainerStyle={styles.loadingContainer}
+                        refreshControl={
+                            <RefreshControl colors={['#2196f3']} refreshing={refreshing} onRefresh={refreshHomeInfo} />
+                        }
+                        ListEmptyComponent={<>
                             <Text style={styles.loadingText}>加载数据失败: {requestError}</Text>
                             <Text> 请尝试重新加载</Text>
-                        </View>
+                        </>}>
+                    </FlatList>
+                </View>
+            </>
+        )
+
+    else if (!homePageData)
+        return (
+            <>
+                <TopBar userCoins={"-"} navigation={navigation} userName={"-"} />
+                <View style={styles.container}>
+                    <Header noticeContext={"加载中"} navigation={navigation} />
+                    <View style={styles.loadingContainer}>
+                        <Text style={styles.loadingText}>加载数据中...</Text>
                     </View>
-                </>
-            );
-        default:
-            return (
-                <>
-                    <TopBar userCoins={"-"} navigation={navigation} />
-                    <View style={styles.container}>
-                        <Header noticeContext={"加载中"} navigation={navigation} />
-                        <View style={styles.loadingContainer}>
-                            <Text style={styles.loadingText}>加载数据中...</Text>
-                        </View>
-                    </View>
-                </>
-            );
+                </View>
+            </>
+        )
+    else {
+        const { userInfo, activities: activityInfo, announcement } = { ...homePageData };
+        const { userCoins, username } = { ...userInfo };
+        return (<>
+            <TopBar userCoins={userCoins} navigation={navigation} userName={username} />
+            <View style={styles.container}>
+                <Header noticeContext={announcement} navigation={navigation} />
+                <FlatList
+                    refreshControl={
+                        <RefreshControl colors={['#2196f3']} refreshing={refreshing} onRefresh={refreshHomeInfo} />
+                    }
+                    data={activityInfo}
+                    renderItem={({ item }) => <ActivityCard activityInfo={item} navigation={navigation} />}
+                    keyExtractor={(item, index) => index.toString()}
+                />
+            </View>
+        </>
+        );
     }
+
 }
 
 function HomePage({ navigation }) {
-    const axios = require('axios').default;
 
-    const [activityInfoArray, setActivityInfoArray] = React.useState([]);
-    const [userCoins, setUserCoins] = React.useState([]);
-    const [announcement, setAnnouncement] = React.useState([]);
+    const { state, dispatch } = React.useContext(AuthContext);
 
-    const [homeInfoState, setHomeInfoState] = React.useState(0);
-    const [requestError, setRequestError] = React.useState("");
+    const [homePageData, setHomePageData] = React.useState(null);
+    const [requestError, setRequestError] = React.useState(null);
+    const [refreshing, setRefreshing] = React.useState(false);
+
+    const refreshHomeInfo = () => {
+        setRefreshing(true);
+        const axios = require('axios').default;
+        axios.get(`${BaseUrl}/api/homepage?token=${state.token}`)
+            .then(function (response) {
+                const data = response.data;
+                console.log("[homepage] received data:", data);
+                setHomePageData(data);
+                setRequestError(null);
+                setRefreshing(false);
+            })
+            .catch(function (error) {
+                console.log("[homepage] error:", error);
+                setHomePageData(null);
+                setRequestError(error.message);
+                setRefreshing(false);
+            })
+    }
 
     useEffect(() => {
-        if (homeInfoState !== 1) {
-            axios.get(`${BaseUrl}/api/homepage`)
-                .then(function (response) {
-                    const status = response.status;
-                    const data = response.data;
-                    console.log(status);
-                    console.log(data);
-                    setActivityInfoArray(data.activities);
-                    setAnnouncement(data.announcement);
-                    setUserCoins(data.coins);
-                    setHomeInfoState(1);
-                })
-                .catch(function (error) {
-                    setHomeInfoState(-1);
-                    setRequestError(error.message);
-                    console.log(error);
-                })
-        }
-    }, [homeInfoState]);
+        if (!homePageData)
+            refreshHomeInfo();
+    }, [homePageData]);
 
     return (
         <>
             <OrientationLocker orientation={PORTRAIT} />
-            <InfoTab navigation={navigation} activityInfo={activityInfoArray} loadingStatus={homeInfoState} requestError={requestError} userCoins={userCoins} announcement={announcement} />
-            <TouchableOpacity style={styles.refreshButton} onPress={() => setHomeInfoState(0)}>
-                <Image source={refreshIcon} style={styles.refreshIcon} />
-            </TouchableOpacity>
+            <InfoTab navigation={navigation} homePageData={homePageData} requestError={requestError} refreshing={refreshing} refreshHomeInfo={refreshHomeInfo} />
         </>
     );
 }

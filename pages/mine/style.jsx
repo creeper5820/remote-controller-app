@@ -5,6 +5,10 @@ const styles = StyleSheet.create({
         flex: 1,
         backgroundColor: '#1e88e5',
     },
+    scrollViewContainer: {
+        flex: 1,
+        backgroundColor: '#f5f5f5',
+    },
     header: {
         backgroundColor: '#1e88e5',
         paddingBottom: 20,
@@ -23,6 +27,15 @@ const styles = StyleSheet.create({
         fontSize: 20,
         fontWeight: 'bold',
         color: '#FFF',
+    },
+    profileLevel: {
+        backgroundColor: '#2196f3',
+        fontSize: 20,
+        color: '#FFF',
+        paddingHorizontal: 10,
+        marginVertical: 5,
+        fontWeight: 'light',
+        borderRadius: 10
     },
     statsContainer: {
         flexDirection: 'row',
@@ -50,8 +63,6 @@ const styles = StyleSheet.create({
     userOperationContainer: {
         flex: 1,
         backgroundColor: '#f5f5f5',
-        borderTopLeftRadius: 20,
-        borderTopRightRadius: 20
     },
     userOperationItemFirst: {
         backgroundColor: '#fff',

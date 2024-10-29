@@ -56,7 +56,7 @@ export default function LoginPage({ navigation }) {
             setLoginState(null);
             setRenderContent(
                 <Text style={[styles.warningButton, styles.warningText]}>
-                    密码长度应大于6位 小于16位
+                    密码长度需在6-16位之间
                 </Text>
             );
         } else {
@@ -99,7 +99,7 @@ export default function LoginPage({ navigation }) {
                     setTimeout(() => {
                         dispatch({ type: 'login', token: loginToken });
                         console.log('[LoginPage] handleLogin end');
-                    }, 1000);
+                    }, 500);
                     break;
                 default:
                     setRenderContent(
@@ -131,7 +131,7 @@ export default function LoginPage({ navigation }) {
                 <TextInput
                     style={styles.input}
                     value={password}
-                    onChangeText={setPassword}
+                    onChangeText={(text) => text.length <= 16 ? setPassword(text) : password}
                     secureTextEntry
                     placeholder="请输入密码"
                     placeholderTextColor={colors.outline}

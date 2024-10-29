@@ -13,7 +13,7 @@ export function saveToken(token) {
     storage.save({
         key: 'loginToken',
         data: token,
-        expires: 1000,
+        expires: 1000 * 3600,
         // expires: 1000 * 3600 * 24 * 30,
     });
 }

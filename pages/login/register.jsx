@@ -57,7 +57,7 @@ export default function RegisterPage({ navigation }) {
             setRegisterState(null);
             setRenderContent(
                 <Text style={[styles.warningButton, styles.warningText]}>
-                    密码长度应大于6位 小于16位
+                    密码长度需在6-16位之间
                 </Text>
             );
         } else if (password !== confirmPassword) {
@@ -102,7 +102,7 @@ export default function RegisterPage({ navigation }) {
                     setTimeout(() => {
                         dispatch({ type: 'register', token: registerToken });
                         console.log('[RegisterPage] handleRegister end');
-                    }, 1000);
+                    }, 500);
                     break;
                 default:
                     setRenderContent(
