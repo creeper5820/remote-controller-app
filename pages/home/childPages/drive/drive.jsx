@@ -1,70 +1,52 @@
 import React, { useEffect, useState, useRef } from "react";
 import { View, PanResponder, Text, TouchableOpacity, Image } from 'react-native';
 import { OrientationLocker, LANDSCAPE } from "react-native-orientation-locker";
+import dgram from "react-native-udp";
+import { webrtc } from "../../../../components/webrtc/webrtc";
+import { RTCView } from 'react-native-webrtc';
+
 import styles from "./style";
 
 import backIcon from '../../images/back.png';
 
 import { JOYSTICK_SIZE, STICK_SIZE } from './style';
+import Video from "react-native-video";
 
 export default function DrivePage({ navigation }) {
-    useEffect(() => {
-        const parentNavigation = navigation.getParent();
-        if (parentNavigation)
-            parentNavigation.setOptions({ tabBarStyle: { display: 'none' } });
-
-        return () => {
-            if (parentNavigation)
-                parentNavigation.setOptions({ tabBarStyle: { display: 'flex' } });
-        };
-    }, [navigation]);
 
     const [stickPosition, setStickPosition] = useState({ x: 0, y: 0 });
-    const serverStateRef = useRef(0);
-    const [serverMessages, setServerMessages] = useState([]);
+    const [remoteStream, setRemoteStream] = useState(null);
+    const [webrtcConnectState, setWebrtcConnectState] = useState(null);
+    const [webrtcConnectStatus, setWebrtcConnectStatus] = useState(-1);
+    const [connectionTip, setConnectionTip] = useState('正在连接...');
 
-    const ws = useRef(new WebSocket('ws://10.31.1.213:8765')).current;
-    const joystickDataRef = useRef(new Uint8Array(2));
+    const socket = useRef(dgram.createSocket("udp4")).current;
+    const joystickDataRef = useRef(new Uint8Array([127, 127]));
     const lastUpdateJoystick = useRef(Date.now());
 
     useEffect(() => {
-        const serverMessagesList = [];
         const interval = setInterval(() => {
-            if (serverStateRef.current === 1) {
-                ws.send(joystickDataRef.current);
-                console.log(joystickDataRef.current);
-            }
-        }, 100);;
-        ws.onopen = () => {
-            serverStateRef.current = 1;
-            joystickDataRef.current[0] = 127;
-            joystickDataRef.current[1] = 127;
-        };
-        ws.onclose = () => {
-            serverStateRef.current = 0;
-        };
-        ws.onerror = (e) => {
-            serverStateRef.current = -1;
-        };
-        ws.onmessage = (e) => {
-            if (serverMessagesList.length > 0)
-                serverMessagesList.shift();
+            const message = new Uint8Array(joystickDataRef.current);
+            socket.send(message, 0, message.length, 8000, '10.31.2.143', (err) => {
+                if (err) console.error(err);
+                // else console.log('[send]' + message);
+            });
+        }, 100);
 
-            let message;
-            if (e.data instanceof ArrayBuffer) {
-                const uint8Array = new Uint8Array(e.data);
-                message = `Received: ${uint8Array[0]}, ${uint8Array[1]}`;
-            } else {
-                message = e.data;
-            }
+        socket.bind(12345);
 
-            serverMessagesList.push(message);
-            setServerMessages([...serverMessagesList]);
-        };
+        socket.on('message', (msg, rinfo) => {
+            console.log(`received: ${msg} from ${rinfo.address}:${rinfo.port}`);
+        });
+
+        socket.on('listening', () => {
+            const address = socket.address();
+            console.log(`Socket listening ${address.address}:${address.port}`);
+        });
 
         return () => {
             clearInterval(interval);
-            ws.close();
+            socket.close();
         }
     }, []);
 
@@ -117,10 +99,60 @@ export default function DrivePage({ navigation }) {
         })
     ).current;
 
+    useEffect(() => {
+        const parentNavigation = navigation.getParent();
+        if (parentNavigation)
+            parentNavigation.setOptions({ tabBarStyle: { display: 'none' } });
+
+        return () => {
+            if (parentNavigation)
+                parentNavigation.setOptions({ tabBarStyle: { display: 'flex' } });
+        };
+    }, [navigation]);
+
+
+    useEffect(() => {
+        webrtc.playUrlInput = "https://gwm-000-cn-0604.bcloud365.net:9113/live/b5080f783d377e4c/Mnx8ZDE4ZTY5NzFjNjQ5OTBlNzllY2E4NThhZjE4ZmVkZmZ8fGI1MDgwZjc4M2QzNzdlNGN8fDI3M2Y1Yjg1M2U3Y2VkZTM3OGFlMDYxOGEx6Y2M0MTM3MTU4ZTE5MWM5YTI0NWZhNTc4ZTNjNjczZmYxNmE3ODB8fHdlYnJ0Y3x8MTczMDMwMDQ1NTc0MXx8MTczMjA2NjU3MjYzM3x8R1dN.f263a0054590801b6aed3a2be476f6a8.webrtc"
+        webrtc.initWebRtc();
+        webrtc.call();
+        return () => {
+            webrtc.hangup();
+            webrtc.setTalkDisable();
+            setRemoteStream(null);
+        }
+    }, []);
+
+    useEffect(() => {
+        const interval = setInterval(() => {
+            setWebrtcConnectState(webrtc.connectionState)
+            setWebrtcConnectStatus(webrtc.connectionStatus)
+        }, 100);
+
+        if (webrtcConnectState === 'connected' && webrtcConnectStatus === 200) {
+            setConnectionTip('连接成功')
+        } else if (webrtcConnectState === 'connecting' || webrtcConnectStatus === -1) {
+            setConnectionTip('正在连接...')
+        } else if (webrtcConnectState === 'closed') {
+            setConnectionTip('连接断开，错误码：' + webrtcConnectStatus)
+        }
+        setRemoteStream(webrtc.remoteStream);
+        console.log("[remoteStream]" + (remoteStream ? remoteStream.toURL() : remoteStream));
+
+        return () => clearInterval(interval);
+    }, [webrtcConnectState]);
+
     return (
         <View style={styles.container}>
             <OrientationLocker orientation={LANDSCAPE} />
-
+            {webrtc.connectionState === 'connected' ? (
+                <RTCView
+                    streamURL={remoteStream.toURL()}
+                    style={styles.video}
+                    objectFit="cover"
+                />
+            ) : (
+                <Text style={styles.loadingText}>{connectionTip}</Text>
+            )}
             <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backContainer}>
                 <Image source={backIcon} style={styles.backIcon} />
                 <Text style={styles.backText}>返回</Text>
@@ -128,10 +160,7 @@ export default function DrivePage({ navigation }) {
 
             <View style={styles.leaderboard}>
                 <Text style={styles.leaderboardTitle}>[DEBUG INFO]</Text>
-                <Text style={styles.leaderboardItem}>{serverStateRef.current}</Text>
-                {serverMessages.map((message, index) => (
-                    <Text key={index} style={styles.leaderboardItem}>{message}</Text>
-                ))}
+                <Text style={styles.leaderboardItem}>{webrtcConnectState}</Text>
             </View>
 
             <View style={styles.infoBar}>

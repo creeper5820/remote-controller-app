@@ -1,5 +1,5 @@
 import React, { useContext, useEffect } from 'react';
-import { View, Text, Image, TouchableOpacity, RefreshControl, ScrollView } from 'react-native';
+import { View, Text, Image, TouchableOpacity, RefreshControl, ScrollView, Alert } from 'react-native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { AuthContext, BaseUrl } from '../../App';
@@ -10,6 +10,10 @@ import avatarIcon from "../home/images/avatar.jpg";
 import goToIcon from "../../icons/goto.png";
 
 import ChargePage from '../../components/charge/charge'
+import InvitePage from './invite'
+import AboutUsPage from './aboutUs';
+import FeedbackPage from './feedback';
+import SettingsPage from './settings';
 
 function MinePage({ navigation }) {
     const { state, dispatch } = useContext(AuthContext);
@@ -17,14 +21,25 @@ function MinePage({ navigation }) {
     const [refreshing, setRefreshing] = React.useState(false);
 
     const logout = () => {
-        console.log('[Mine] logout');
-        dispatch({ type: 'logout', token: null });
+        Alert.alert(
+            "退出登录",
+            "您确定要退出登录吗？",
+            [
+                { text: "取消", style: "cancel" },
+                {
+                    text: "确定", onPress: () => {
+                        console.log('[Mine] logout');
+                        dispatch({ type: 'logout', token: null });
+                    }
+                }
+            ]
+        );
     };
 
     const refreshUserInfo = () => {
         setRefreshing(true);
         const axios = require('axios').default;
-        axios.get(`${BaseUrl}/api/mine?token=${state.token}`)
+        axios.get(`${BaseUrl}/api/profile?token=${state.token}`)
             .then(function (response) {
                 const data = response.data;
                 console.log("[Mine] received data:", data);
@@ -60,7 +75,7 @@ function MinePage({ navigation }) {
                         <Text style={styles.profileLevel}>{userInfo ? `Lv ${userInfo.userLevel}` : 'Lv -'}</Text>
                     </TouchableOpacity>
                     <View style={styles.statsContainer}>
-                        <TouchableOpacity style={styles.statItem}>
+                        <TouchableOpacity style={styles.statItem} onPress={() => navigation.navigate('Charge')}>
                             <Text style={styles.statValue}>{userInfo ? userInfo.userCoins : '-'}</Text>
                             <Text style={styles.statLabel}>金币</Text>
                         </TouchableOpacity>
@@ -75,19 +90,19 @@ function MinePage({ navigation }) {
                         <Text style={styles.userOperationText}>充值</Text>
                         <Image source={goToIcon} style={styles.goToIcon} />
                     </TouchableOpacity>
-                    <TouchableOpacity style={styles.userOperationItem}>
+                    <TouchableOpacity style={styles.userOperationItem} onPress={() => navigation.navigate('Invite')}>
                         <Text style={styles.userOperationText}>邀请好友</Text>
                         <Image source={goToIcon} style={styles.goToIcon} />
                     </TouchableOpacity>
-                    <TouchableOpacity style={styles.userOperationItem}>
+                    <TouchableOpacity style={styles.userOperationItem} onPress={() => navigation.navigate('Settings')}>
                         <Text style={styles.userOperationText}>设置</Text>
                         <Image source={goToIcon} style={styles.goToIcon} />
                     </TouchableOpacity>
-                    <TouchableOpacity style={styles.userOperationItem}>
+                    <TouchableOpacity style={styles.userOperationItem} onPress={() => navigation.navigate('Feedback')}>
                         <Text style={styles.userOperationText}>意见反馈</Text>
                         <Image source={goToIcon} style={styles.goToIcon} />
                     </TouchableOpacity>
-                    <TouchableOpacity style={styles.userOperationItem}>
+                    <TouchableOpacity style={styles.userOperationItem} onPress={() => navigation.navigate('AboutUs')}>
                         <Text style={styles.userOperationText}>关于</Text>
                         <Image source={goToIcon} style={styles.goToIcon} />
                     </TouchableOpacity>
@@ -106,6 +121,10 @@ export default function Mine({ navigation, route }) {
         <MineStack.Navigator>
             <MineStack.Screen name="Mine" component={MinePage} options={{ headerShown: false }} />
             <MineStack.Screen name="Charge" component={ChargePage} options={{ headerShown: false }} />
+            <MineStack.Screen name="Invite" component={InvitePage} options={{ headerShown: false }} />
+            <MineStack.Screen name="AboutUs" component={AboutUsPage} options={{ headerShown: false }} />
+            <MineStack.Screen name="Feedback" component={FeedbackPage} options={{ headerShown: false }} />
+            <MineStack.Screen name="Settings" component={SettingsPage} options={{ headerShown: false }} />
         </MineStack.Navigator>
     );
 }

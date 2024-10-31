@@ -1,20 +1,10 @@
-import { RTCPeerConnection } from 'react-native-webrtc'
+import { RTCPeerConnection, MediaStream } from 'react-native-webrtc'
 
 export const webrtc = {
 	playUrlInput: '',
 	talkUrlInput: '',
-	pc: new RTCPeerConnection({
-		iceServers: [
-			{
-				urls: ['stun:stun.voipbuster.com:3478'] //stun:stun.oss.aliyuncs.com:3478
-			}
-		]
-	}),
-	pcTalk: new RTCPeerConnection({
-		iceServers: [{
-			urls: ['stun:stun.voipbuster.com:3478'] //stun:stun.oss.aliyuncs.com:3478
-		}]
-	}),
+	pc: null,
+	pcTalk: null,
 	localSDP: null,
 	candidateSDP: '',
 	remoteVideo: null,
@@ -30,6 +20,7 @@ export const webrtc = {
 	isH264: '',
 	remoteAudio: null,
 	connectionState: false,
+	connectionStatus: 0,
 	remoteStream: null,
 	isLocalIP(ip) {
 		// 检查IP地址是否是内网地址
@@ -61,15 +52,33 @@ export const webrtc = {
 		let _that = this
 		let _tracks = [];
 
+		_that.pc = new RTCPeerConnection({
+			iceServers: [
+				{
+					urls: ['stun:stun.voipbuster.com:3478'] //stun:stun.oss.aliyuncs.com:3478
+				}
+			]
+		})
+
+		_that.pcTalk = new RTCPeerConnection({
+			iceServers: [
+				{
+					urls: ['stun:stun.voipbuster.com:3478'] //stun:stun.oss.aliyuncs.com:3478
+				}
+			]
+		})
 
 		console.log('url  ', _that.playUrlInput)
 		_that.pc.onicecandidate = function (event) {
+			console.log('onicecandidate event', event)
 			_that.handleCandidate(event, _that.playUrlInput);
 		};
 		_that.pc.onicecandidateerror = function (event) {
+			console.log('onicecandidateerror event', event)
 		};
 		_that.pc.ontrack = function (event) {
 
+			console.log('ontrack event', event)
 			if (event.track.kind === 'audio') {
 				// 处理音频流
 				console.log('audio:');
@@ -89,7 +98,8 @@ export const webrtc = {
 						console.log('This is a video track length', event.streams.length);
 					}
 				})
-				_that.remoteStream = eventStream;
+
+				_that.remoteStream = new MediaStream(eventStream.getTracks());
 
 			} else {
 				if (_that.pc.getReceivers().length === this._tracks.length) {
@@ -102,20 +112,19 @@ export const webrtc = {
 			}
 		};
 		_that.pc.onconnectionstatechange = function (event) {
+			console.log('onconnectionstatechange event', event)
 			_that.connectionState = event.currentTarget.connectionState;
 			console.log('当前状态==>', event.currentTarget.connectionState);
 		};
 
 		_that.pcTalk.ontrack = function (event) {
+			console.log('ontrack event', event)
 			if (!_that.remoteAudio) {
-				// _that.remoteAuido = _that.$refs.audio
-				// _that.remoteAuido = uni.createInnerAudioContext()
 				_that.remoteAudio = document.getElementsByTagName('video')[1];//
 			}
 			if (_that.remoteAudio && event.streams && event.streams.length > 0) {
 				console.log(_that.remoteAudio)
 				let eventStream = event.streams[0];
-				// _that.remoteAuido.srcObject = eventStream;
 				_that.remoteAudio.srcObject = eventStream;
 			} else {
 				console.log('pcTalk wait stream track finish');
@@ -244,7 +253,7 @@ export const webrtc = {
 	setTalkDisable() {
 		console.log('stopTalk');
 		this.pcTalk.close();
-		//pcTalk = null;//不注释会报错
+		pcTalk = null;
 		this.stopTalkButtonDisabled = true;
 		this.startTalkButtonDisabled = false;
 
@@ -270,7 +279,7 @@ export const webrtc = {
 	hangup() {
 		console.log('Ending call');
 		this.pc.close();
-		//pc = null;//不注释会报错
+		pc = null;
 		this.hangupButtonDisabled = true;
 		this.callButtonDisabled = false;
 
@@ -302,6 +311,7 @@ export const webrtc = {
 			console.log('xhr readyState', xhr.readyState);
 			//alert(xhr.status);
 			if (xhr.readyState == 4) {
+				_that.connectionStatus = xhr.status;
 				console.log('xhr status', xhr.status);
 				if (xhr.status == 200 || xhr.status == 304) {
 					let data = xhr.responseText;
@@ -326,7 +336,7 @@ export const webrtc = {
 		xhr.setRequestHeader("Content-type", "application/json; charset=utf-8");
 		//xhr.setRequestHeader("Connection","Keep-Alive");
 		xhr.setRequestHeader("Access-Control-Allow-Headers", "Access-Control-Allow-Origin, ClientType,Accept-Encoding,Content-Type,Access-Token,Authorization,authorization,Token,Tag,Cache-Control");
-		xhr.setRequestHeader("Accessol-Allow-Origin", "*");
+		xhr.setRequestHeader("Access-Control-Allow-Origin", "*");
 		let jsonStr = JSON.stringify(json);
 		xhr.send(jsonStr);
 	},
@@ -369,14 +379,14 @@ export const webrtc = {
 		xhrTalk.setRequestHeader("Content-type", "application/json; charset=utf-8");
 		//xhrTalk.setRequestHeader("Connection","Keep-Alive");
 		xhrTalk.setRequestHeader("Access-Control-Allow-Headers", "Access-Control-Allow-Origin, ClientType,Accept-Encoding,Content-Type,Access-Token,Authorization,authorization,Token,Tag,Cache-Control");
-		xhrTalk.setRequestHeader("Accessol-Allow-Origin", "*");
+		xhrTalk.setRequestHeader("Access-Control-Allow-Origin", "*");
 		let jsonStr = JSON.stringify(json);
 		xhrTalk.send(jsonStr);
 	},
 	GetPlayStatus() {
 		let xhr = new XMLHttpRequest();
 		xhr.open('GET', this.playUrlInput, true);
-		xhr.setRequestHeader("Accessol-Allow-Origin", "*");
+		xhr.setRequestHeader("Access-Control-Allow-Origin", "*");
 		xhr.onreadystatechange = function () {
 			if (xhr.readyState === XMLHttpRequest.DONE) {
 				if (xhr.status === 200 || xhr.status === 204) {

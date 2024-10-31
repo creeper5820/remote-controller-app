@@ -13,6 +13,16 @@ const styles = StyleSheet.create({
         justifyContent: 'center',
         alignItems: 'center',
     },
+    video: {
+        width: '100%',
+        height: '100%'
+    },
+    loadingText: {
+        color: '#fff',
+        fontSize: 20,
+        fontWeight: 'bold',
+        textAlign: 'center',
+    },
     stick: {
         width: STICK_SIZE,
         height: STICK_SIZE,

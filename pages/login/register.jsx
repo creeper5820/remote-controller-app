@@ -13,8 +13,10 @@ const colors = {
 };
 
 export default function RegisterPage({ navigation }) {
+    const [nickname, setNickname] = useState('');
     const [username, setUsername] = useState('');
     const [password, setPassword] = useState('');
+    const [inviteCode, setInviteCode] = useState('');
     const [confirmPassword, setConfirmPassword] = useState('');
     const [renderContent, setRenderContent] = useState(null);
     const [registerState, setRegisterState] = useState(null);
@@ -46,7 +48,14 @@ export default function RegisterPage({ navigation }) {
     }
 
     useEffect(() => {
-        if (username.length !== 11) {
+        if (nickname.length < 2 || nickname.length > 16) {
+            setRegisterState(null);
+            setRenderContent(
+                <Text style={[styles.warningButton, styles.warningText]}>
+                    昵称长度需在2-16个字符之间
+                </Text>
+            );
+        } else if (username.length !== 11) {
             setRegisterState(null);
             setRenderContent(
                 <Text style={[styles.warningButton, styles.warningText]}>
@@ -113,13 +122,24 @@ export default function RegisterPage({ navigation }) {
                     break;
             }
         }
-    }, [username, password, confirmPassword, registerState]);
+    }, [nickname, username, password, confirmPassword, registerState]);
 
     return (
         <View style={styles.container}>
             <Text style={styles.title}>注册</Text>
             <View style={styles.inputContainer}>
-                <Text style={styles.label}>手机号</Text>
+                <Text style={styles.label}>昵称*</Text>
+                <TextInput
+                    style={styles.input}
+                    value={nickname}
+                    onChangeText={setNickname}
+                    keyboardType="default"
+                    placeholder="请输入昵称"
+                    placeholderTextColor={colors.outline}
+                />
+            </View>
+            <View style={styles.inputContainer}>
+                <Text style={styles.label}>手机号*</Text>
                 <TextInput
                     style={styles.input}
                     value={username}
@@ -130,24 +150,36 @@ export default function RegisterPage({ navigation }) {
                 />
             </View>
             <View style={styles.inputContainer}>
-                <Text style={styles.label}>密码</Text>
+                <Text style={styles.label}>密码*</Text>
                 <TextInput
                     style={styles.input}
                     value={password}
                     onChangeText={setPassword}
                     secureTextEntry
-                    placeholder="请输入密码"
+                    placeholder="请输入密码，长度需在6-16位之间"
                     placeholderTextColor={colors.outline}
                 />
             </View>
             <View style={styles.inputContainer}>
-                <Text style={styles.label}>确认密码</Text>
+                <Text style={styles.label}>确认密码*</Text>
                 <TextInput
                     style={styles.input}
                     value={confirmPassword}
                     onChangeText={setConfirmPassword}
                     secureTextEntry
                     placeholder="请再次输入密码"
+                    placeholderTextColor={colors.outline}
+                />
+            </View>
+
+            <View style={styles.inputContainer}>
+                <Text style={styles.label}>邀请码</Text>
+                <TextInput
+                    style={styles.input}
+                    value={inviteCode}
+                    onChangeText={setInviteCode}
+                    keyboardType="default"
+                    placeholder="请输入邀请码(可选)"
                     placeholderTextColor={colors.outline}
                 />
             </View>

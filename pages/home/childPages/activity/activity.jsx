@@ -103,7 +103,7 @@ function CarList({ navigation, carData, loadingStatus, requestError }) {
 
 
 export default function ActivityPage({ route, navigation }) {
-    const { eventName, manufacture, onlineNumber, driveNumber, id } = { ...route.params.ActivityInfo };
+    const { eventName, id } = { ...route.params.ActivityInfo };
 
     const axios = require('axios').default;
 

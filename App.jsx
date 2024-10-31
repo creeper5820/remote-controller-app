@@ -1,8 +1,8 @@
-import React, { useEffect, useReducer, createContext, useState, useContext } from 'react';
+import React, { useEffect, useReducer, createContext } from 'react';
+import { Image } from 'react-native';
+
 import Home from './pages/home/home';
 import Mine from './pages/mine/mine';
-import WebrtcPlayer from './pages/test/test';
-
 import LoginScreen from './pages/login/login';
 import RegisterScreen from './pages/login/register';
 import { getToken, saveToken } from './pages/login/tokenStorage';
@@ -16,7 +16,7 @@ import homeFillIcon from './icons/homefill.png';
 import userIcon from './icons/user.png';
 import userFillIcon from './icons/userfill.png';
 
-import { Image, View, Text } from 'react-native';
+
 
 const TabBar = createBottomTabNavigator()
 const LoginStack = createNativeStackNavigator();
@@ -94,7 +94,7 @@ const App = () => {
 						<TabBar.Navigator initialRouteName="Home" screenOptions={screenOptions}>
 							<TabBar.Screen name="主页" component={Home} />
 							<TabBar.Screen name="我的" component={Mine} />
-							<TabBar.Screen name="测试" component={WebrtcPlayer} />
+							{/* <TabBar.Screen name="测试" component={WebrtcPlayer} /> */}
 						</TabBar.Navigator>
 					) :
 					(

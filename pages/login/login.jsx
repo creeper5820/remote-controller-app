@@ -18,6 +18,7 @@ export default function LoginPage({ navigation }) {
     const [renderContent, setRenderContent] = useState(null);
     const [loginState, setLoginState] = useState(null);
     const [loginToken, setLoginToken] = useState(null);
+    const [loginError, setLoginError] = useState(null);
 
     const { state, dispatch } = useContext(AuthContext);
 
@@ -39,6 +40,7 @@ export default function LoginPage({ navigation }) {
             } else if (result === 404) setLoginState('USER_NOT_FOUND');
             else setLoginState('LOGIN_FAILED');
         } catch (error) {
+            setLoginError(error);
             console.error('[LoginPage] handleLogin error', error);
             setLoginState('NETWORK_ERROR');
         }
@@ -85,7 +87,7 @@ export default function LoginPage({ navigation }) {
                 case 'NETWORK_ERROR':
                     setRenderContent(
                         <TouchableOpacity style={styles.warningButton} onPress={handleLogin}>
-                            <Text style={styles.warningText}>网络错误, 请检查网络后重试</Text>
+                            <Text style={styles.warningText}>网络错误, 请检查网络后重试:{loginError.message}</Text>
                         </TouchableOpacity>
                     );
                     break;
@@ -133,7 +135,7 @@ export default function LoginPage({ navigation }) {
                     value={password}
                     onChangeText={(text) => text.length <= 16 ? setPassword(text) : password}
                     secureTextEntry
-                    placeholder="请输入密码"
+                    placeholder="请输入密码，长度需在6-16位之间"
                     placeholderTextColor={colors.outline}
                 />
             </View>
