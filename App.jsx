@@ -3,6 +3,7 @@ import { Image } from 'react-native';
 
 import Home from './pages/home/home';
 import Mine from './pages/mine/mine';
+import ActivityPage from './pages/activity/activity';
 import LoginScreen from './pages/login/login';
 import RegisterScreen from './pages/login/register';
 import { getToken, saveToken } from './pages/login/tokenStorage';
@@ -15,21 +16,33 @@ import homeIcon from './icons/home.png';
 import homeFillIcon from './icons/homefill.png';
 import userIcon from './icons/user.png';
 import userFillIcon from './icons/userfill.png';
-
+import activityIcon from './icons/activity.png';
+import activityFillIcon from './icons/activityFill.png';
 
 
 const TabBar = createBottomTabNavigator()
 const LoginStack = createNativeStackNavigator();
 
 export const AuthContext = createContext();
-
 export const BaseUrl = 'http://10.31.1.213:8000';
 
 const screenOptions = ({ route }) => ({
 	tabBarIcon: ({ focused, color, size }) => {
-		const iconName = route.name === "主页" ?
-			(focused ? homeFillIcon : homeIcon) : (focused ? userFillIcon : userIcon);
-		return (<Image source={iconName} style={{ height: 30, width: 30 }} />);
+		let iconName;
+		switch (route.name) {
+			case '主页':
+				iconName = focused ? homeFillIcon : homeIcon;
+				break;
+			case '我的':
+				iconName = focused ? userFillIcon : userIcon;
+				break;
+			case '活动':
+				iconName = focused ? activityFillIcon : activityIcon;
+				break;
+			default:
+				break;
+		}
+		return <Image source={iconName} style={{ width: 30, height: 30 }} />;
 	},
 	tabBarActiveTintColor: '#0284c7',
 	tabBarInactiveTintColor: 'gray',
@@ -58,6 +71,7 @@ const App = () => {
 
 	const reactiveToken = async () => {
 		console.log('[App] reactiveToken called');
+
 		try {
 			const storedToken = await getToken();
 			console.log('[App] reactiveToken: storedToken =', storedToken);
@@ -65,17 +79,20 @@ const App = () => {
 				console.log('[App] back to login');
 				return;
 			}
-			const axios = require('axios').default;
-			const response = await axios.get(`${BaseUrl}/api/reactive?token=${storedToken}`);
-			console.log('[App] reactiveToken: axios response =', response.data);
-			const { result, token } = response.data;
-			if (result === 200) {
-				dispatch({ type: 'reactive', token });
-				console.log('[App] reactiveToken: reactive success');
-			} else {
-				dispatch({ type: 'reactive', token: null });
-				console.log('[App] reactiveToken: reactive failed');
-			}
+			dispatch({ type: 'reactive', token: storedToken });
+
+
+			// const axios = require('axios').default;
+			// const response = await axios.get(`${BaseUrl}/api/reactive?token=${storedToken}`);
+			// console.log('[App] reactiveToken: axios response =', response.data);
+			// const { result, token } = response.data;
+			// if (result === 200) {
+			// 	dispatch({ type: 'reactive', token });
+			// 	console.log('[App] reactiveToken: reactive success');
+			// } else {
+			// 	dispatch({ type: 'reactive', token: null });
+			// 	console.log('[App] reactiveToken: reactive failed');
+			// }
 		} catch (error) {
 			dispatch({ type: 'reactive', token: null });
 			console.error('[App] reactiveToken failed:', error);
@@ -93,8 +110,8 @@ const App = () => {
 					(
 						<TabBar.Navigator initialRouteName="Home" screenOptions={screenOptions}>
 							<TabBar.Screen name="主页" component={Home} />
+							<TabBar.Screen name="活动" component={ActivityPage} />
 							<TabBar.Screen name="我的" component={Mine} />
-							{/* <TabBar.Screen name="测试" component={WebrtcPlayer} /> */}
 						</TabBar.Navigator>
 					) :
 					(

@@ -6,10 +6,10 @@ import { AuthContext, BaseUrl } from '../../App';
 
 
 import styles from './style';
-import avatarIcon from "../home/images/avatar.jpg";
+import avatarIcon from "../../icons/avatar.jpg";
 import goToIcon from "../../icons/goto.png";
 
-import ChargePage from '../../components/charge/charge'
+import ChargePage from '../../components/charge'
 import InvitePage from './invite'
 import AboutUsPage from './aboutUs';
 import FeedbackPage from './feedback';

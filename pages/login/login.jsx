@@ -26,24 +26,28 @@ export default function LoginPage({ navigation }) {
         console.log('[LoginPage] handleLogin start');
         setLoginState('LOGIN_IN_PROGRESS');
 
-        try {
-            const axios = require('axios').default;
-            console.log('[LoginPage] handleLogin axios start');
-            const response = await axios.get(
-                `${BaseUrl}/api/login?username=${username}&password=${password}`
-            );
-            const { result, token } = response.data;
-            console.log('[LoginPage] handleLogin response result: [', result, ']', 'token: [', token, ']');
-            if (result === 200) {
-                setLoginToken(token);
-                setLoginState('LOGIN_SUCCESS');
-            } else if (result === 404) setLoginState('USER_NOT_FOUND');
-            else setLoginState('LOGIN_FAILED');
-        } catch (error) {
-            setLoginError(error);
-            console.error('[LoginPage] handleLogin error', error);
-            setLoginState('NETWORK_ERROR');
-        }
+        // 模拟登录
+        setLoginToken("aaaa");
+        setLoginState('LOGIN_SUCCESS');
+
+        // try {
+        //     const axios = require('axios').default;
+        //     console.log('[LoginPage] handleLogin axios start');
+        //     const response = await axios.get(
+        //         `${BaseUrl}/api/login?username=${username}&password=${password}`
+        //     );
+        //     const { result, token } = response.data;
+        //     console.log('[LoginPage] handleLogin response result: [', result, ']', 'token: [', token, ']');
+        //     if (result === 200) {
+        //         setLoginToken(token);
+        //         setLoginState('LOGIN_SUCCESS');
+        //     } else if (result === 404) setLoginState('USER_NOT_FOUND');
+        //     else setLoginState('LOGIN_FAILED');
+        // } catch (error) {
+        //     setLoginError(error);
+        //     console.error('[LoginPage] handleLogin error', error);
+        //     setLoginState('NETWORK_ERROR');
+        // }
     }
 
     useEffect(() => {
