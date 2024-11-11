@@ -6,14 +6,22 @@ import rankIcon from '../../icons/rank.png';
 import { BaseUrl } from "../../App";
 import RankScreen from '../../components/rank';
 
-function Header({ noticeContext, navigation }) {
+function Header({ userInfo, navigation }) {
     return (
         <View style={styles.header}>
             <TouchableOpacity style={styles.headerContainer} onPress={() => navigation.navigate('Rank')}>
                 <View style={styles.headerIconContainerGreen} >
                     <Image source={rankIcon} style={styles.headerIcon} />
+                    <Text style={styles.headerTextSmall}>点击查看排行榜</Text>
                 </View>
-                <Text style={styles.headerText}>排行榜</Text>
+                <View style={styles.headerIconContainerGreen} >
+                    <Text style={styles.headerText}>我的排名</Text>
+                    <Text style={styles.headerTextLarge}>{userInfo ? userInfo.userRank : '未上榜'}</Text>
+                </View>
+                <View style={styles.headerIconContainerGreen} >
+                    <Text style={styles.headerText}>我的游玩时长</Text>
+                    <Text style={styles.headerTextLarge}>{userInfo ? userInfo.playingDuration + " 分钟" : '无数据'}</Text>
+                </View>
             </TouchableOpacity>
         </View>
     )
@@ -32,6 +40,7 @@ function AnnouncementCard({ navigation, announcementInfo }) {
 
 function Activity({ navigation }) {
     const [announcementInfoArray, setAnnouncementInfoArray] = useState(null);
+    const [userInfo, setUserInfo] = useState(null);
     const [refreshing, setRefreshing] = useState(false);
     const [requestError, setRequestError] = useState(null);
     const refreshActivityInfo = () => {
@@ -42,6 +51,7 @@ function Activity({ navigation }) {
                 const data = response.data;
                 console.log("[activitypage] received data:", data);
                 setAnnouncementInfoArray(data.announcementInfoArray);
+                setUserInfo(data.userInfo);
                 setRequestError(null);
                 setRefreshing(false);
             })
@@ -64,7 +74,7 @@ function Activity({ navigation }) {
                 refreshControl={
                     <RefreshControl colors={['#2196f3']} refreshing={refreshing} onRefresh={refreshActivityInfo} />
                 }>
-                <Header navigation={navigation} />
+                <Header navigation={navigation} userInfo={userInfo} />
                 <View style={styles.announcementBarTitle}>
                     <Text style={styles.announcementBarTitleText}>活动与公告</Text>
                 </View>
@@ -77,7 +87,7 @@ function Activity({ navigation }) {
     } else if (!announcementInfoArray) {
         return (
             <View style={styles.container}>
-                <Header navigation={navigation} />
+                <Header navigation={navigation} userInfo={userInfo} />
                 <View style={styles.announcementBarTitle}>
                     <Text style={styles.announcementBarTitleText}>活动与公告</Text>
                 </View>
@@ -89,7 +99,7 @@ function Activity({ navigation }) {
     } else {
         return (
             <View style={styles.container}>
-                <Header navigation={navigation} />
+                <Header navigation={navigation} userInfo={userInfo} />
                 <View style={styles.announcementBarTitle}>
                     <Text style={styles.announcementBarTitleText}>活动与公告</Text>
                 </View>
@@ -145,6 +155,7 @@ const styles = StyleSheet.create({
         height: 50,
     },
     headerIconContainerGreen: {
+        alignItems: 'center',
         backgroundColor: '#58d68d',
         borderRadius: 20,
         padding: 10
@@ -152,6 +163,15 @@ const styles = StyleSheet.create({
     headerText: {
         fontSize: 16,
         color: '#fff',
+    },
+    headerTextSmall: {
+        fontSize: 12,
+        color: '#fff',
+    },
+    headerTextLarge: {
+        fontSize: 24,
+        color: '#fff',
+        textAlign: 'center',
     },
     loadingContainer: {
         flex: 1,
@@ -186,9 +206,6 @@ const styles = StyleSheet.create({
         color: '#666',
         fontWeight: 'bold',
         marginBottom: 10,
-    },
-    announcementContent: {
-
     },
     refreshButton: {
         backgroundColor: 'rgba(30, 100, 255 , 0.8)',

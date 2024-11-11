@@ -2,45 +2,62 @@ import React, { useEffect, useState, useRef } from "react";
 import { View, PanResponder, Text, TouchableOpacity, Image } from 'react-native';
 import { OrientationLocker, LANDSCAPE } from "react-native-orientation-locker";
 import dgram from "react-native-udp";
+import { BaseUrl } from "../App";
 import { webrtc } from "./webrtc";
 import { RTCView } from 'react-native-webrtc';
+import { AuthContext } from "../App";
+
+import gpsIcon from '../icons/gps.png';
 import backIcon from '../icons/back.png';
+import speakerIcon from '../icons/speaker.png';
+import speakerMutedIcon from '../icons/speakerMuted.png';
+import micIcon from '../icons/mic.png';
+import micMutedIcon from '../icons/micMuted.png';
+import messageIcon from '../icons/message.png';
+import signalFullIcon from '../icons/signalFull.png';
+import signalMediumIcon from '../icons/signalMedium.png';
+import signalLowIcon from '../icons/signalLow.png';
+import speedometerIcon from '../icons/speedometer.png';
+import batteryIcon from '../icons/battery.png';
 
 export default function DrivePage({ navigation }) {
-
+    const { state } = React.useContext(AuthContext);
     const [stickPosition, setStickPosition] = useState({ x: 0, y: 0 });
     const [remoteStream, setRemoteStream] = useState(null);
     const [webrtcConnectState, setWebrtcConnectState] = useState(null);
     const [webrtcConnectStatus, setWebrtcConnectStatus] = useState(-1);
     const [connectionTip, setConnectionTip] = useState('正在连接...');
 
+    const [speakerMuted, setSpeakerMuted] = useState(true);
+    const [micMuted, setMicMuted] = useState(true);
+
     const socket = useRef(dgram.createSocket("udp4")).current;
     const joystickDataRef = useRef(new Uint8Array([127, 127]));
     const lastUpdateJoystick = useRef(Date.now());
 
     useEffect(() => {
-        const interval = setInterval(() => {
-            const message = new Uint8Array(joystickDataRef.current);
-            socket.send(message, 0, message.length, 8000, '10.31.2.143', (err) => {
-                if (err) console.error(err);
-                // else console.log('[send]' + message);
-            });
-        }, 100);
+        // const interval = setInterval(() => {
+        //     const message = new Uint8Array(joystickDataRef.current);
+        //     socket.send(message, 0, message.length, 8000, '10.31.2.143', (err) => {
+        //         if (err) console.error(err);
+        //         // else console.log('[send]' + message);
+        //     });
+        // }, 100);
 
-        socket.bind(12345);
+        // socket.bind(12345);
 
-        socket.on('message', (msg, rinfo) => {
-            console.log(`received: ${msg} from ${rinfo.address}:${rinfo.port}`);
-        });
+        // socket.on('message', (msg, rinfo) => {
+        //     console.log(`received: ${msg} from ${rinfo.address}:${rinfo.port}`);
+        // });
 
-        socket.on('listening', () => {
-            const address = socket.address();
-            console.log(`Socket listening ${address.address}:${address.port}`);
-        });
+        // socket.on('listening', () => {
+        //     const address = socket.address();
+        //     console.log(`Socket listening ${address.address}:${address.port}`);
+        // });
 
         return () => {
-            clearInterval(interval);
-            socket.close();
+            // clearInterval(interval);
+            // socket.close();
         }
     }, []);
 
@@ -106,13 +123,22 @@ export default function DrivePage({ navigation }) {
 
 
     useEffect(() => {
-        webrtc.playUrlInput = "https://gwm-000-cn-0604.bcloud365.net:9113/live/b5080f783d377e4c/Mnx8ZDE4ZTY5NzFjNjQ5OTBlNzllY2E4NThhZjE4ZmVkZmZ8fGI1MDgwZjc4M2QzNzdlNGN8fDI3M2Y1Yjg1M2U3Y2VkZTM3OGFlMDYxOGEx6Y2M0MTM3MTU4ZTE5MWM5YTI0NWZhNTc4ZTNjNjczZmYxNmE3ODB8fHdlYnJ0Y3x8MTczMDMwMDQ1NTc0MXx8MTczMjA2NjU3MjYzM3x8R1dN.f263a0054590801b6aed3a2be476f6a8.webrtc"
-        webrtc.initWebRtc();
-        webrtc.call();
+        const axios = require('axios').default;
+        axios.get(`${BaseUrl}/api/drive?token=${state.token}&vehicleId=123`)
+            .then(function (response) {
+                const data = response.data;
+                console.log("[drivepage] received data:", data);
+                webrtc.playUrlInput = data.playUrl;
+                // webrtc.initWebRtc();
+                // webrtc.call();
+            })
+            .catch(function (error) {
+                console.log("[drivepage] error:", error);
+            })
         return () => {
-            webrtc.hangup();
-            webrtc.setTalkDisable();
-            setRemoteStream(null);
+            // webrtc.hangup();
+            // webrtc.setTalkDisable();
+            // setRemoteStream(null);
         }
     }, []);
 
@@ -147,19 +173,39 @@ export default function DrivePage({ navigation }) {
             ) : (
                 <Text style={styles.loadingText}>{connectionTip}</Text>
             )}
+
             <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backContainer}>
                 <Image source={backIcon} style={styles.backIcon} />
                 <Text style={styles.backText}>返回</Text>
             </TouchableOpacity>
 
             <View style={styles.leaderboard}>
-                <Text style={styles.leaderboardTitle}>[DEBUG INFO]</Text>
+                <Text style={styles.leaderboardTitle}>在线用户</Text>
                 <Text style={styles.leaderboardItem}>{webrtcConnectState}</Text>
             </View>
 
             <View style={styles.infoBar}>
-                <Text style={styles.infoText}>速度: 6 km/h</Text>
-                <Text style={styles.infoText}>电量: 75%</Text>
+                <Image source={speedometerIcon} style={styles.infoIcon} />
+                <Text style={styles.infoText}>6 km/h</Text>
+                <Image source={batteryIcon} style={styles.infoIcon} />
+                <Text style={styles.infoText}>75%</Text>
+            </View>
+
+            <View style={styles.infoGPS}>
+                <Image source={gpsIcon} style={styles.infoGPSIcon} />
+                <Image source={signalFullIcon} style={styles.infoGPSIcon} />
+            </View>
+
+            <View style={styles.communications}>
+                <TouchableOpacity style={styles.communicationsItem}>
+                    <Image source={messageIcon} style={styles.communicationsMessage} />
+                </TouchableOpacity >
+                <TouchableOpacity style={styles.communicationsItem} onPress={() => setSpeakerMuted(!speakerMuted)}>
+                    <Image source={speakerMuted ? speakerMutedIcon : speakerIcon} style={styles.communicationsMessage} />
+                </TouchableOpacity>
+                <TouchableOpacity style={styles.communicationsItem} onPress={() => setMicMuted(!micMuted)}>
+                    <Image source={micMuted ? micMutedIcon : micIcon} style={styles.communicationsMessage} />
+                </TouchableOpacity>
             </View>
 
             <View style={styles.controls}>
@@ -181,7 +227,6 @@ export default function DrivePage({ navigation }) {
     )
 }
 
-
 import { StyleSheet, Dimensions } from 'react-native';
 
 const { width, height } = Dimensions.get('window');
@@ -202,9 +247,15 @@ const styles = StyleSheet.create({
         height: '100%'
     },
     loadingText: {
+        backgroundColor: '#9e9e9e',
+        marginTop: 10,
+        padding: 10,
+        borderRadius: 20,
+        width: '50%',
         color: '#fff',
         fontSize: 20,
         fontWeight: 'bold',
+        alignSelf: 'center',
         textAlign: 'center',
     },
     stick: {
@@ -227,11 +278,11 @@ const styles = StyleSheet.create({
         justifyContent: 'center',
         textAlignVertical: 'center',
         position: 'absolute',
-        top: 0,
-        left: 0,
-        backgroundColor: '#1565c0',
+        top: 10,
+        left: 10,
+        backgroundColor: '#9e9e9e',
         padding: 10,
-        borderBottomRightRadius: 10,
+        borderRadius: 20
     },
     backIcon: {
         width: 25,
@@ -242,9 +293,10 @@ const styles = StyleSheet.create({
     },
     leaderboard: {
         position: 'absolute',
-        top: 0,
-        right: 0,
-        backgroundColor: '#1565c0',
+        top: 10,
+        right: 10,
+        backgroundColor: '#9e9e9e',
+        borderRadius: 20,
         padding: 15
     },
     leaderboardTitle: {
@@ -257,19 +309,38 @@ const styles = StyleSheet.create({
         color: '#fafafa',
         fontSize: 14,
     },
+    infoGPS: {
+        position: 'absolute',
+        bottom: 0,
+        left: 10,
+        padding: 4,
+        borderTopRightRadius: 10,
+        flexDirection: 'row',
+        justifyContent: 'space-between'
+    },
+    infoGPSIcon: {
+        width: 20,
+        height: 20,
+    },
+    infoGPSText: {
+        color: 'white',
+        marginHorizontal: 8,
+        marginVertical: 4,
+        fontSize: 12,
+    },
     infoBar: {
         alignSelf: 'center',
-        justifyContent: 'space-between',
         position: 'absolute',
         bottom: 0,
         flexDirection: 'row',
-        borderTopLeftRadius: 10,
-        borderTopRightRadius: 10,
-        backgroundColor: '#1565c0',
+    },
+    infoIcon: {
+        width: 20,
+        height: 20
     },
     infoText: {
-        marginHorizontal: 15,
-        marginVertical: 5,
+        marginHorizontal: 4,
+        marginVertical: 4,
         color: 'white',
         fontSize: 12,
     },
@@ -296,4 +367,25 @@ const styles = StyleSheet.create({
         width: 70,
         height: 70,
     },
+    communications: {
+        marginTop: 20,
+        padding: 15,
+        flexDirection: 'column',
+        justifyContent: 'space-between',
+    },
+    communicationsItem: {
+        marginVertical: 5,
+    },
+    communicationsMessage: {
+        width: 20,
+        height: 20
+    },
+    communicationsSpeaker: {
+        width: 20,
+        height: 20
+    },
+    communicationsMic: {
+        width: 20,
+        height: 20
+    }
 });

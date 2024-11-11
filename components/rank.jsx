@@ -13,23 +13,25 @@ const MedalIcon = ({ position }) => {
     );
 };
 
-const LeaderboardItem = ({ item, index }) => (
-    <View style={styles.leaderboardItem}>
-        {index < 3 ? (
-            <MedalIcon position={index + 1} />
-        ) : (
-            <View style={[styles.medalIcon, { backgroundColor: "#FFF" }]}>
-                <Text style={styles.medalTextDefault}>{index + 1}</Text>
-            </View>
+const LeaderboardItem = ({ item, index, userInfo }) => {
+    const userRank = userInfo.userRank - 1;
+    return (
+        <View style={[styles.leaderboardItem, index === userRank ? { backgroundColor: "#bbdefb" } : {}]}>
+            {index < 3 ? (
+                <MedalIcon position={index + 1} />
+            ) : (
+                <View style={[styles.medalIcon, { backgroundColor: "#FFF" }]}>
+                    <Text style={index === userRank ? [styles.medalTextDefault, { color: "#64b5f6" }] : styles.medalTextDefault}>{index + 1}</Text>
+                </View>
+            )}
+            <Image source={avatarIcon} style={styles.avatar} />
+            <Text style={styles.name}>{item.name}</Text>
+            <Text style={styles.score}>{item.score}</Text>
+        </View >
+    )
+};
 
-        )}
-        <Image source={avatarIcon} style={styles.avatar} />
-        <Text style={styles.name}>{item.name}</Text>
-        <Text style={styles.score}>{item.score}</Text>
-    </View>
-);
-
-function RankList({ LeaderboardData, loadingStatus, refreshing, refreshRankInfo }) {
+function RankList({ LeaderboardData, loadingStatus, refreshing, refreshRankInfo, userInfo }) {
     switch (loadingStatus) {
         case 1:
             return (
@@ -42,7 +44,7 @@ function RankList({ LeaderboardData, loadingStatus, refreshing, refreshRankInfo 
                             <Text style={styles.loadingText}>暂无排行</Text>
                         </View>}
                     data={LeaderboardData}
-                    renderItem={LeaderboardItem}
+                    renderItem={({ item, index }) => <LeaderboardItem item={item} index={index} userInfo={userInfo} />}
                     keyExtractor={(item, index) => index.toString()}
                 />
             );
@@ -123,7 +125,7 @@ export default function Rank() {
                 <View style={styles.leaderboardHeader}>
                     <Text style={[styles.leaderboardHeaderText, styles.activeTab]}>今日排行榜</Text>
                 </View>
-                <RankList LeaderboardData={rankDataArray} loadingStatus={rankInfoState} refreshing={refreshing} refreshRankInfo={refreshRankInfo} />
+                <RankList LeaderboardData={rankDataArray} loadingStatus={rankInfoState} refreshing={refreshing} refreshRankInfo={refreshRankInfo} userInfo={userInfo} />
             </View>
         </SafeAreaView>
     );
@@ -157,9 +159,9 @@ const styles = StyleSheet.create({
     },
     statsContainer: {
         flexDirection: 'row',
-        justifyContent: 'space-around',
+        alignContent: 'center',
         marginTop: 20,
-        marginHorizontal: 10,
+        justifyContent: "space-evenly"
     },
     statItem: {
         alignItems: 'center',

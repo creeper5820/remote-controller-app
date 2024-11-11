@@ -1,7 +1,8 @@
-import React, { useEffect } from 'react';
-import { View, Text, Image, TouchableOpacity, FlatList, RefreshControl, ScrollView } from 'react-native';
+import React, { useEffect, useState } from 'react';
+import { View, Text, Image, TouchableOpacity, FlatList, RefreshControl, ScrollView, StyleSheet } from 'react-native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { OrientationLocker, PORTRAIT } from "react-native-orientation-locker";
+import axios from 'axios';
 import { BaseUrl, AuthContext } from '../../App';
 
 import DrivePage from '../../components/drive';
@@ -10,7 +11,29 @@ import ActivityPage from '../../components/activity';
 
 import coinIcon from '../../icons/coin.png';
 import carIcon from '../../icons/car.png';
-import refreshIcon from '../../icons/reload.png';
+import coinCategoryIcon from '../../icons/coin.jpg';
+import advancedCategoryIcon from '../../icons/advanced.jpg';
+import freeCategoryIcon from '../../icons/free.jpg';
+
+import jeepIcon from '../../icons/jeep.webp';
+import tankIcon from '../../icons/tank.webp';
+import boatIcon from '../../icons/yacht.webp';
+import excavatorIcon from '../../icons/excavator.jpg';
+
+// 定义类别和显示名称的映射
+const categoryMappings = {
+    levels: {
+        'advanced': { text: '高级场', icon: advancedCategoryIcon },
+        'free': { text: '免费场', icon: freeCategoryIcon },
+        'coin': { text: '活动场', icon: coinCategoryIcon },
+    },
+    vehicles: {
+        'car': { text: '车', icon: jeepIcon },
+        'boat': { text: '船', icon: boatIcon },
+        'tank': { text: '坦克', icon: tankIcon },
+        'excavator': { text: '挖掘机', icon: excavatorIcon },
+    }
+};
 
 function TopBar({ userCoins, userName, navigation }) {
     userCoins = userCoins > 10000 ? (userCoins / 10000).toFixed(1) + '万' : userCoins
@@ -31,27 +54,23 @@ function Header({ noticeContext, navigation }) {
             </View>
         </View>
     )
-};
+}
 
 function ActivityCard({ activityInfo, navigation }) {
     const { eventName, manufacture, onlineNumber, driveNumber, id } = { ...activityInfo };
     const freeNumber = onlineNumber - driveNumber
-    const processedEventName = eventName.length <= 7 ? eventName : eventName.slice(0, 8) + '...';
+    const processedEventName = eventName.length <= 10 ? eventName : eventName.slice(0, 10) + '...';
     const processedManufacture = manufacture.length <= 7 ? manufacture : manufacture.slice(0, 8) + '...';
 
     return (
         <View style={styles.cardContainer}>
-            <View style={styles.cardHeader}>
-                <Text style={styles.statusBadge}>营业中</Text>
-                <Text style={styles.eventTitle}>{processedEventName}</Text>
-                <Text style={styles.recommendBadge}>推荐</Text>
+            <View style={styles.carImageInfo}>
+                <Image source={carIcon} style={styles.carImage} />
+                <Text style={styles.manufactureText}>{processedManufacture}</Text>
             </View>
 
             <View style={styles.cardContent}>
-                <View style={styles.carImageInfo}>
-                    <Image source={carIcon} style={styles.carImage} />
-                    <Text style={styles.manufactureText}>{processedManufacture}</Text>
-                </View>
+                <Text style={styles.eventTitle}>{processedEventName}</Text>
                 <View style={styles.carDetails}>
                     <Text style={styles.queueText}>空闲车辆 <Text style={freeNumber > 5 ? styles.boldTextGreen : styles.boldTextRed}>{freeNumber}</Text> 辆</Text>
                     <View style={styles.carStatus}>
@@ -65,10 +84,46 @@ function ActivityCard({ activityInfo, navigation }) {
             </View>
         </View>
     )
-};
+}
 
-function InfoTab({ homePageData, requestError, refreshing, refreshHomeInfo, navigation }) {
+function FilterButtons({ selectedCategories, toggleCategory, toggleAllCategories, categoryType }) {
+    const categories = Object.keys(categoryMappings[categoryType]);
+    const allSelected = selectedCategories.length === categories.length;
 
+    return (
+        <View style={categoryType === "levels" ? styles.filterContainer : styles.filterContainerSmall}>
+            {categoryType !== "levels" &&
+                <TouchableOpacity style={categoryType === "levels" ?
+                    [styles.filterButton, allSelected && styles.filterButtonSelected] :
+                    [styles.filterButtonSmall, allSelected && styles.filterButtonSelectedSmall]}
+                    onPress={() => toggleAllCategories(categoryType)} >
+                    <Text style={[styles.filterButtonTextSmall, allSelected && styles.filterButtonTextSelected]}> 全部 </Text>
+                </TouchableOpacity>
+            }
+            {categories.map((category) => (
+                <TouchableOpacity
+                    key={category}
+                    style={categoryType == "levels" ? [
+                        styles.filterButton,
+                        selectedCategories.includes(category) && styles.filterButtonSelected,
+                    ] : [
+                        styles.filterButtonSmall,
+                        selectedCategories.includes(category) && styles.filterButtonSelectedSmall,
+                    ]}
+                    onPress={() => toggleCategory(categoryType, category)}
+                >
+                    <Image source={categoryMappings[categoryType][category].icon} style={categoryType == "levels" ? styles.filterButtonIcon : styles.filterButtonIconSmall} />
+                    {categoryType == "levels" && <Text style={
+                        [styles.filterButtonText, selectedCategories.includes(category) && styles.filterButtonTextSelected]}>
+                        {categoryMappings[categoryType][category].text}
+                    </Text>}
+                </TouchableOpacity>
+            ))}
+        </View>
+    );
+}
+
+function InfoTab({ homePageData, requestError, refreshing, refreshHomeInfo, navigation, selectedLevels, selectedVehicles, toggleCategory, toggleAllCategories }) {
     if (requestError)
         return (
             <ScrollView style={styles.container}
@@ -79,7 +134,7 @@ function InfoTab({ homePageData, requestError, refreshing, refreshHomeInfo, navi
                 <View style={styles.container}>
                     <Header noticeContext={"加载失败"} navigation={navigation} />
                     <Text style={styles.loadingText}>加载数据失败: {requestError}</Text>
-                    <Text> 请尝试重新加载</Text>
+                    <Text>请尝试重新加载</Text>
                 </View>
             </ScrollView>
         )
@@ -104,6 +159,18 @@ function InfoTab({ homePageData, requestError, refreshing, refreshHomeInfo, navi
                 <TopBar userCoins={userCoins} navigation={navigation} userName={username} />
                 <View style={styles.container}>
                     <Header noticeContext={announcement} navigation={navigation} />
+                    <FilterButtons
+                        selectedCategories={selectedLevels}
+                        toggleCategory={toggleCategory}
+                        toggleAllCategories={toggleAllCategories}
+                        categoryType="levels"
+                    />
+                    <FilterButtons
+                        selectedCategories={selectedVehicles}
+                        toggleCategory={toggleCategory}
+                        toggleAllCategories={toggleAllCategories}
+                        categoryType="vehicles"
+                    />
                     <FlatList
                         refreshControl={
                             <RefreshControl colors={['#2196f3']} refreshing={refreshing} onRefresh={refreshHomeInfo} />
@@ -116,45 +183,75 @@ function InfoTab({ homePageData, requestError, refreshing, refreshHomeInfo, navi
             </>
         );
     }
-
 }
 
 function HomePage({ navigation }) {
+    const { state } = React.useContext(AuthContext);
+    const [homePageData, setHomePageData] = useState(null);
+    const [requestError, setRequestError] = useState(null);
+    const [refreshing, setRefreshing] = useState(false);
+    const [selectedLevel, setSelectedLevel] = useState(["free"]);
+    const [selectedVehicles, setSelectedVehicles] = useState([]);
 
-    const { state, dispatch } = React.useContext(AuthContext);
+    const toggleCategory = (categoryType, category) => {
+        const setSelectedCategories = categoryType === 'levels' ? setSelectedLevel : setSelectedVehicles;
+        if (categoryType === "levels")
+            setSelectedCategories([category])
+        else
+            setSelectedCategories(prev =>
+                prev.includes(category)
+                    ? prev.filter(c => c !== category)
+                    : [...prev, category]
+            );
+    };
 
-    const [homePageData, setHomePageData] = React.useState(null);
-    const [requestError, setRequestError] = React.useState(null);
-    const [refreshing, setRefreshing] = React.useState(false);
+    const toggleAllCategories = (categoryType) => {
+        const setSelectedCategories = categoryType === 'levels' ? setSelectedLevel : setSelectedVehicles;
+        const categories = Object.keys(categoryMappings[categoryType]);
+        setSelectedCategories(prev =>
+            prev.length === categories.length ? [] : [...categories]
+        );
+    };
 
-    const refreshHomeInfo = () => {
+    const refreshHomeInfo = async () => {
         setRefreshing(true);
-        const axios = require('axios').default;
-        axios.get(`${BaseUrl}/api/homepage?token=${state.token}`)
-            .then(function (response) {
-                const data = response.data;
-                console.log("[homepage] received data:", data);
-                setHomePageData(data);
-                setRequestError(null);
-                setRefreshing(false);
-            })
-            .catch(function (error) {
-                console.log("[homepage] error:", error);
-                setHomePageData(null);
-                setRequestError(error.message);
-                setRefreshing(false);
-            })
-    }
+        try {
+            const response = await axios.get(`${BaseUrl}/api/homepage`, {
+                params: {
+                    token: state.token,
+                    levels: selectedLevel.join(','),
+                    vehicles: selectedVehicles.join(',')
+                }
+            });
+            setHomePageData(response.data);
+            setRequestError(null);
+        } catch (error) {
+            console.log("[homepage] error:", error);
+            setHomePageData(null);
+            setRequestError(error.message);
+        } finally {
+            setRefreshing(false);
+        }
+    };
 
     useEffect(() => {
-        if (!homePageData)
-            refreshHomeInfo();
-    }, [homePageData]);
+        refreshHomeInfo();
+    }, [selectedLevel, selectedVehicles]);
 
     return (
         <>
             <OrientationLocker orientation={PORTRAIT} />
-            <InfoTab navigation={navigation} homePageData={homePageData} requestError={requestError} refreshing={refreshing} refreshHomeInfo={refreshHomeInfo} />
+            <InfoTab
+                navigation={navigation}
+                homePageData={homePageData}
+                requestError={requestError}
+                refreshing={refreshing}
+                refreshHomeInfo={refreshHomeInfo}
+                selectedLevels={selectedLevel}
+                selectedVehicles={selectedVehicles}
+                toggleCategory={toggleCategory}
+                toggleAllCategories={toggleAllCategories}
+            />
         </>
     );
 }
@@ -170,9 +267,6 @@ export default function Home({ navigation, route }) {
         </HomeStack.Navigator>
     );
 }
-
-
-import { StyleSheet } from 'react-native';
 
 const styles = StyleSheet.create({
     container: {
@@ -211,24 +305,22 @@ const styles = StyleSheet.create({
     announcementContainer: {
         backgroundColor: '#e0f7fa',
         padding: 15,
-        marginHorizontal: 15,
+        paddingVertical: 30,
+        marginHorizontal: 5,
         borderRadius: 10,
     },
     announcementText: {
+        textAlign: 'center',
         color: '#0277bd',
         fontSize: 16,
     },
     cardContainer: {
-        backgroundColor: '#fff',
-        marginHorizontal: 20,
-        borderRadius: 20,
-        marginTop: 20,
-    },
-    cardHeader: {
         flexDirection: 'row',
+        backgroundColor: '#fff',
         justifyContent: 'space-between',
-        alignItems: 'center',
-        marginBottom: 10,
+        marginHorizontal: 10,
+        borderRadius: 10,
+        marginVertical: 5,
     },
     statusBadge: {
         backgroundColor: '#f68026',
@@ -236,8 +328,8 @@ const styles = StyleSheet.create({
         paddingHorizontal: 32,
         paddingVertical: 10,
         borderTopLeftRadius: 0,
-        borderTopRightRadius: 20,
-        borderBottomLeftRadius: 20,
+        borderTopRightRadius: 10,
+        borderBottomLeftRadius: 10,
         borderBottomRightRadius: 0,
         fontSize: 12,
     },
@@ -245,6 +337,8 @@ const styles = StyleSheet.create({
         fontSize: 20,
         fontWeight: '800',
         color: '#333',
+        marginVertical: 10,
+        textAlign: 'center',
     },
     recommendBadge: {
         color: '#5cc1f1',
@@ -256,18 +350,14 @@ const styles = StyleSheet.create({
         backgroundColor: '#e1f5fe',
     },
     cardContent: {
-        flexDirection: 'row',
+        flexDirection: 'column',
+        margin: "auto",
     },
     carImage: {
         width: 80,
         height: 80,
         margin: 15,
         borderRadius: 10,
-    },
-    carInfo: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        alignItems: 'center',
     },
     carDetails: {
         flex: 1,
@@ -279,11 +369,11 @@ const styles = StyleSheet.create({
         alignItems: 'center',
     },
     queueText: {
-        fontSize: 18,
+        fontSize: 14,
         fontWeight: 'bold',
         color: '#333',
-        margin: 10,
-        alignSelf: 'center',
+        marginHorizontal: 20,
+        alignSelf: 'left',
     },
     manufactureText: {
         color: '#333',
@@ -295,9 +385,10 @@ const styles = StyleSheet.create({
         backgroundColor: '#f5f5f5',
     },
     normalText: {
+        fontSize: 14,
         fontWeight: 'bold',
         color: '#000',
-        margin: 10,
+        marginHorizontal: 20,
     },
     boldTextRed: {
         fontSize: 24,
@@ -311,10 +402,10 @@ const styles = StyleSheet.create({
     },
     driveButton: {
         backgroundColor: '#2196f3',
-        paddingVertical: 10,
+        paddingVertical: 5,
         marginBottom: 15,
         borderRadius: 25,
-        marginHorizontal: 25,
+        marginHorizontal: 5,
         justifyContent: 'space-between',
     },
     driveButtonText: {
@@ -331,19 +422,68 @@ const styles = StyleSheet.create({
         marginTop: 50,
         alignItems: 'center',
     },
-    refreshButton: {
-        backgroundColor: 'rgba(30, 100, 255 , 0.8)',
-        position: 'absolute',
-        bottom: 20,
-        right: 20,
-        width: 60,
-        height: 60,
-        borderRadius: 25,
-        justifyContent: 'center',
-        alignItems: 'center',
+    filterContainer: {
+        flexDirection: 'row',
+        padding: 10,
+        justifyContent: 'space-between',
+        backgroundColor: '#fff',
     },
-    refreshIcon: {
+    filterContainerSmall: {
+        flexDirection: 'row',
+        paddingHorizontal: 10,
+        paddingVertical: 5,
+        backgroundColor: '#fff',
+    },
+    filterButtonIcon: {
+        width: 90,
+        height: 90,
+        borderRadius: 10,
+    },
+    filterButtonIconSmall: {
         width: 40,
         height: 40,
+    },
+    filterButton: {
+        opacity: 0.7,
+        paddingVertical: 8,
+        paddingHorizontal: 8,
+        borderRadius: 10,
+        borderWidth: 1,
+        borderColor: '#2196f3',
+        marginHorizontal: 4,
+    },
+    filterButtonSmall: {
+        flexDirection: 'column',
+        paddingVertical: 4,
+        paddingHorizontal: 8,
+        borderRadius: 15,
+        borderWidth: 1,
+        borderColor: '#2196f3',
+        marginHorizontal: 4,
+    },
+    filterButtonSelected: {
+        opacity: 1,
+        borderColor: '#2196f3',
+        borderBottomWidth: 3,
+    },
+    filterButtonSelectedSmall: {
+        backgroundColor: '#ebf5fb',
+        borderColor: '#2196f3',
+    },
+    filterButtonText: {
+        textAlign: 'center',
+        color: '#90caf9',
+        fontSize: 14,
+        fontWeight: '500',
+    },
+    filterButtonTextSmall: {
+        color: '#2196f3',
+        margin: 'auto',
+        textAlign: 'center',
+        fontSize: 12,
+        fontWeight: '500',
+    },
+    filterButtonTextSelected: {
+        color: '#2196f3',
     },
 });
