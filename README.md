@@ -30,7 +30,7 @@
 2. 安装项目依赖：
 
    ```bash
-   yarn insyarn
+   yarn install
    ```
 
 3. 确保已安装 React Native CLI：
@@ -66,4 +66,4 @@
 
 ## 许可证
 
-该项目采用 MIT 许可证。
+MIT 许可证。
