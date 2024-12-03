@@ -2,7 +2,7 @@ import React, { useContext, useEffect } from 'react';
 import { View, Text, Image, TouchableOpacity, RefreshControl, ScrollView, Alert } from 'react-native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { AuthContext, BaseUrl } from '../../App';
+import { AuthContext, BackendUrl } from '../../App';
 
 
 import styles from './style';
@@ -39,7 +39,7 @@ function MinePage({ navigation }) {
     const refreshUserInfo = () => {
         setRefreshing(true);
         const axios = require('axios').default;
-        axios.get(`${BaseUrl}/api/profile?token=${state.token}`)
+        axios.get(`${BackendUrl}/api/profile?token=${state.token}`)
             .then(function (response) {
                 const data = response.data;
                 console.log("[Mine] received data:", data);

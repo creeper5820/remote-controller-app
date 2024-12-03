@@ -3,7 +3,7 @@ import { useState, useEffect } from "react";
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import rankIcon from '../../icons/rank.png';
 
-import { BaseUrl } from "../../App";
+import { BackendUrl } from "../../App";
 import RankScreen from '../../components/rank';
 
 function Header({ userInfo, navigation }) {
@@ -46,7 +46,7 @@ function Activity({ navigation }) {
     const refreshActivityInfo = () => {
         setRefreshing(true);
         const axios = require('axios').default;
-        axios.get(`${BaseUrl}/api/activitypage`)
+        axios.get(`${BackendUrl}/api/activitypage`)
             .then(function (response) {
                 const data = response.data;
                 console.log("[activitypage] received data:", data);

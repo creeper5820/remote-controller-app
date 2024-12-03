@@ -24,7 +24,10 @@ const TabBar = createBottomTabNavigator()
 const LoginStack = createNativeStackNavigator();
 
 export const AuthContext = createContext();
-export const BaseUrl = 'http://10.31.1.213:8000';
+export const ServerAddress = '10.31.0.35'
+export const BackendUrl = 'http://' + ServerAddress + ':14543'; // TCP
+export const RemoteControlPort = '16425'; // UDP
+export const UserControlPort = '18764'; // UDP
 
 const screenOptions = ({ route }) => ({
 	tabBarIcon: ({ focused, color, size }) => {

@@ -1,7 +1,7 @@
 import React, { useEffect } from 'react';
 import { View, Text, Image, TouchableOpacity, FlatList, Button } from 'react-native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
-import { BaseUrl } from '../App';
+import { BackendUrl } from '../App';
 
 import backIcon from '../icons/back.png';
 import carIcon from '../icons/car.png';
@@ -110,7 +110,7 @@ export default function ActivityPage({ route, navigation }) {
     const [requestError, setRequestError] = React.useState("");
 
     useEffect(() => {
-        axios.get(`${BaseUrl}/api/activity/${id}/detail`, {
+        axios.get(`${BackendUrl}/api/activity/${id}/detail`, {
         }).then(function (response) {
             const status = response.status;
             const data = response.data.vehicles;

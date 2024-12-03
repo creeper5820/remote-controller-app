@@ -3,7 +3,7 @@ import { View, Text, Image, TouchableOpacity, FlatList, RefreshControl, ScrollVi
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { OrientationLocker, PORTRAIT } from "react-native-orientation-locker";
 import axios from 'axios';
-import { BaseUrl, AuthContext } from '../../App';
+import { BackendUrl, AuthContext } from '../../App';
 
 import DrivePage from '../../components/drive';
 import ChargePage from '../../components/charge'
@@ -11,7 +11,7 @@ import ActivityPage from '../../components/activity';
 
 import coinIcon from '../../icons/coin.png';
 import carIcon from '../../icons/car.png';
-import coinCategoryIcon from '../../icons/coin.jpg';
+import coinCategoryIcon from '../../icons/coin-scene.jpg';
 import advancedCategoryIcon from '../../icons/advanced.jpg';
 import freeCategoryIcon from '../../icons/free.jpg';
 
@@ -216,7 +216,7 @@ function HomePage({ navigation }) {
     const refreshHomeInfo = async () => {
         setRefreshing(true);
         try {
-            const response = await axios.get(`${BaseUrl}/api/homepage`, {
+            const response = await axios.get(`${BackendUrl}/api/homepage`, {
                 params: {
                     token: state.token,
                     levels: selectedLevel.join(','),

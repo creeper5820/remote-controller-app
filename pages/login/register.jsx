@@ -1,6 +1,6 @@
 import React, { useState, useContext, useEffect } from 'react';
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, DrawerLayoutAndroid } from 'react-native';
-import { AuthContext, BaseUrl } from '../../App';
+import { AuthContext, BackendUrl } from '../../App';
 import { saveToken } from './tokenStorage';
 
 // 模拟MD3的颜色系统
@@ -31,7 +31,7 @@ export default function RegisterPage({ navigation }) {
             const axios = require('axios').default;
             console.log('[RegisterPage] handleRegister axios start');
             const response = await axios.get(
-                `${BaseUrl}/api/register?username=${username}&password=${password}`
+                `${BackendUrl}/api/register?username=${username}&password=${password}`
             );
             const { result, token } = response.data;
             console.log('[RegisterPage] handleRegister response result: [', result, ']', 'token: [', token, ']');

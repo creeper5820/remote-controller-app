@@ -2,7 +2,7 @@ import React, { useEffect, useState, useRef } from "react";
 import { View, PanResponder, Text, TouchableOpacity, Image } from 'react-native';
 import { OrientationLocker, LANDSCAPE } from "react-native-orientation-locker";
 import dgram from "react-native-udp";
-import { BaseUrl } from "../App";
+import { BackendUrl } from "../App";
 import { webrtc } from "./webrtc";
 import { RTCView } from 'react-native-webrtc';
 import { AuthContext } from "../App";
@@ -124,7 +124,7 @@ export default function DrivePage({ navigation }) {
 
     useEffect(() => {
         const axios = require('axios').default;
-        axios.get(`${BaseUrl}/api/drive?token=${state.token}&vehicleId=123`)
+        axios.get(`${BackendUrl}/api/drive?token=${state.token}&vehicleId=123`)
             .then(function (response) {
                 const data = response.data;
                 console.log("[drivepage] received data:", data);

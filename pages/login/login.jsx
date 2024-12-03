@@ -1,6 +1,6 @@
 import React, { useContext, useEffect, useState } from 'react';
 import { View, Text, TextInput, TouchableOpacity, StyleSheet } from 'react-native';
-import { AuthContext, BaseUrl } from '../../App';
+import { AuthContext, BackendUrl } from '../../App';
 import { saveToken } from './tokenStorage';
 
 // 模拟MD3的颜色系统

@@ -2,7 +2,7 @@ import React, { useEffect } from 'react';
 import { View, Text, Image, FlatList, ScrollView, RefreshControl } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import avatarIcon from '../icons/avatar.jpg';
-import { BaseUrl } from '../App';
+import { BackendUrl } from '../App';
 
 const MedalIcon = ({ position }) => {
     const color = position === 1 ? '#FFD700' : position === 2 ? '#C0C0C0' : '#CD7F32';
@@ -74,7 +74,7 @@ export default function Rank() {
     const refreshRankInfo = () => {
         setRefreshing(true);
         const axios = require('axios').default;
-        axios.get(`${BaseUrl}/api/ranking`)
+        axios.get(`${BackendUrl}/api/ranking`)
             .then(function (response) {
                 const status = response.status;
                 const data = response.data;

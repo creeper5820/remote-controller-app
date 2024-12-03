@@ -11,7 +11,7 @@ import {
 } from 'react-native';
 
 import { AuthContext } from '../App';
-import { BaseUrl } from '../App';
+import { BackendUrl } from '../App';
 import alipayIcon from '../icons/alipay.png';
 import wechatpayIcon from '../icons/wepay.png';
 
@@ -46,7 +46,7 @@ export default function RechargeScreen() {
         }
 
         const axios = require('axios').default;
-        axios.get(`${BaseUrl}/api/charge?token=${state.token}&cdkey=${CDKey}`)
+        axios.get(`${BackendUrl}/api/charge?token=${state.token}&cdkey=${CDKey}`)
             .then(function (response) {
                 const data = response.data;
                 console.log("[chargepage] received data:", data);
@@ -66,7 +66,7 @@ export default function RechargeScreen() {
         }
 
         const axios = require('axios').default;
-        axios.get(`${BaseUrl}/api/charge?token=${state.token}&cdkey=${CDKey}`)
+        axios.get(`${BackendUrl}/api/charge?token=${state.token}&cdkey=${CDKey}`)
             .then(function (response) {
                 const data = response.data;
                 console.log("[chargepage] received data:", data);
