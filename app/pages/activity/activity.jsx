@@ -24,8 +24,8 @@ function Header({ userInfo, navigation }) {
                 </View>
             </TouchableOpacity>
         </View>
-    )
-};
+    );
+}
 
 function AnnouncementCard({ navigation, announcementInfo }) {
     const { title, content } = announcementInfo;
@@ -37,42 +37,41 @@ function AnnouncementCard({ navigation, announcementInfo }) {
     )
 }
 
+function refresh(setAnnouncementInfoArray, setUserInfo, setRefreshing, setRequestError) {
+    setRefreshing(true);
+    const axios = require('axios').default;
+    axios.get(`${BackendUrl}/api/activity-page`)
+        .then(function (response) {
+            const data = response.data;
+            console.log("[activity-page] received data:", data);
+            setAnnouncementInfoArray(data.announcementInfoArray);
+            setUserInfo(data.userInfo);
+            setRequestError(null);
+            setRefreshing(false);
+        })
+        .catch(function (error) {
+            console.log("[activity-page] error:", error);
+            setAnnouncementInfoArray(null);
+            setRequestError(error.message);
+            setRefreshing(false);
+        })
+}
 
 function Activity({ navigation }) {
     const [announcementInfoArray, setAnnouncementInfoArray] = useState(null);
     const [userInfo, setUserInfo] = useState(null);
     const [refreshing, setRefreshing] = useState(false);
     const [requestError, setRequestError] = useState(null);
-    const refreshActivityInfo = () => {
-        setRefreshing(true);
-        const axios = require('axios').default;
-        axios.get(`${BackendUrl}/api/activitypage`)
-            .then(function (response) {
-                const data = response.data;
-                console.log("[activitypage] received data:", data);
-                setAnnouncementInfoArray(data.announcementInfoArray);
-                setUserInfo(data.userInfo);
-                setRequestError(null);
-                setRefreshing(false);
-            })
-            .catch(function (error) {
-                console.log("[activitypage] error:", error);
-                setAnnouncementInfoArray(null);
-                setRequestError(error.message);
-                setRefreshing(false);
-            })
-    }
 
     useEffect(() => {
-        if (!announcementInfoArray)
-            refreshActivityInfo();
+        if (!announcementInfoArray) refresh(setAnnouncementInfoArray, setUserInfo, setRefreshing, setRequestError);
     }, [announcementInfoArray]);
 
     if (requestError) {
         return (
             <ScrollView style={styles.container}
                 refreshControl={
-                    <RefreshControl colors={['#2196f3']} refreshing={refreshing} onRefresh={refreshActivityInfo} />
+                    <RefreshControl colors={['#2196f3']} refreshing={refreshing} onRefresh={() => refresh(setAnnouncementInfoArray, setUserInfo, setRefreshing, setRequestError)} />
                 }>
                 <Header navigation={navigation} userInfo={userInfo} />
                 <View style={styles.announcementBarTitle}>
@@ -105,7 +104,7 @@ function Activity({ navigation }) {
                 </View>
                 <FlatList
                     refreshControl={
-                        <RefreshControl colors={['#2196f3']} refreshing={refreshing} onRefresh={refreshActivityInfo} />
+                        <RefreshControl colors={['#2196f3']} refreshing={refreshing} onRefresh={() => refresh(setAnnouncementInfoArray, setUserInfo, setRefreshing, setRequestError)} />
                     }
                     ListEmptyComponent={
                         <View style={styles.loadingContainer}>
@@ -118,12 +117,10 @@ function Activity({ navigation }) {
             </View>
         );
     }
-
 }
 
 const ActivityStack = createNativeStackNavigator();
 export default function ActivityPage({ navigation, route }) {
-
     return (
         <ActivityStack.Navigator>
             <ActivityStack.Screen name="ActivityScreen" component={Activity} options={{ headerShown: false }} />
@@ -131,7 +128,6 @@ export default function ActivityPage({ navigation, route }) {
         </ActivityStack.Navigator>
     );
 }
-
 
 import { StyleSheet } from 'react-native';
 const styles = StyleSheet.create({

@@ -9,7 +9,7 @@ export default function AboutUs({ navigation }) {
     return (
         <ScrollView contentContainerStyle={styles.container}>
             <Image
-                source={require('../../icons/icon192.png')} // 请确保有这个图片文件
+                source={require('../../../icons/icon192.png')} // 请确保有这个图片文件
                 style={styles.logo}
             />
             <Text style={styles.title}>遥驰天下</Text>

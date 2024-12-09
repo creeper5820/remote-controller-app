@@ -46,7 +46,7 @@ const styles = StyleSheet.create({
     statItem: {
         alignItems: 'center',
         backgroundColor: '#2196f3',
-        width: '40%',
+        width: '25%',
         margin: 10,
         padding: 10,
         borderRadius: 10,

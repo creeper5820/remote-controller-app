@@ -9,11 +9,12 @@ import styles from './style';
 import avatarIcon from "../../icons/avatar.jpg";
 import goToIcon from "../../icons/goto.png";
 
-import ChargePage from '../../components/charge'
-import InvitePage from './invite'
-import AboutUsPage from './aboutUs';
-import FeedbackPage from './feedback';
-import SettingsPage from './settings';
+import ChargeFunction from '../../components/charge'
+import InviteFunction from './function/invite'
+import AboutUsFunction from './function/aboutUs';
+import FeedbackFunction from './function/feedback';
+import SettingsFunction from './function/settings';
+import MyCarFunction from './function/my-car';
 
 function MinePage({ navigation }) {
     const { state, dispatch } = useContext(AuthContext);
@@ -79,6 +80,10 @@ function MinePage({ navigation }) {
                             <Text style={styles.statValue}>{userInfo ? userInfo.userCoins : '-'}</Text>
                             <Text style={styles.statLabel}>金币</Text>
                         </TouchableOpacity>
+                        <TouchableOpacity style={styles.statItem} onPress={() => navigation.navigate('Charge')}>
+                            <Text style={styles.statValue}>{userInfo ? userInfo.userDiamond : '-'}</Text>
+                            <Text style={styles.statLabel}>钻石</Text>
+                        </TouchableOpacity>
                         <TouchableOpacity style={styles.statItem}>
                             <Text style={styles.statValue}>{userInfo ? (userInfo.playingDuration > 3600 ? (userInfo.playingDuration / 60).toFixed(1) + "小时" : userInfo.playingDuration + "分钟") : '-'}</Text>
                             <Text style={styles.statLabel}>游玩时长</Text>
@@ -86,6 +91,10 @@ function MinePage({ navigation }) {
                     </View>
                 </View>
                 <View style={styles.userOperationContainer}>
+                    <TouchableOpacity style={styles.userOperationItemFirst} onPress={() => navigation.navigate('MyCar')}>
+                        <Text style={styles.userOperationText}>我的车辆</Text>
+                        <Image source={goToIcon} style={styles.goToIcon} />
+                    </TouchableOpacity>
                     <TouchableOpacity style={styles.userOperationItemFirst} onPress={() => navigation.navigate('Charge')}>
                         <Text style={styles.userOperationText}>充值</Text>
                         <Image source={goToIcon} style={styles.goToIcon} />
@@ -120,11 +129,12 @@ export default function Mine({ navigation, route }) {
     return (
         <MineStack.Navigator>
             <MineStack.Screen name="Mine" component={MinePage} options={{ headerShown: false }} />
-            <MineStack.Screen name="Charge" component={ChargePage} options={{ headerShown: false }} />
-            <MineStack.Screen name="Invite" component={InvitePage} options={{ headerShown: false }} />
-            <MineStack.Screen name="AboutUs" component={AboutUsPage} options={{ headerShown: false }} />
-            <MineStack.Screen name="Feedback" component={FeedbackPage} options={{ headerShown: false }} />
-            <MineStack.Screen name="Settings" component={SettingsPage} options={{ headerShown: false }} />
+            <MineStack.Screen name="Charge" component={ChargeFunction} options={{ headerShown: false }} />
+            <MineStack.Screen name="Invite" component={InviteFunction} options={{ headerShown: false }} />
+            <MineStack.Screen name="AboutUs" component={AboutUsFunction} options={{ headerShown: false }} />
+            <MineStack.Screen name="Feedback" component={FeedbackFunction} options={{ headerShown: false }} />
+            <MineStack.Screen name="Settings" component={SettingsFunction} options={{ headerShown: false }} />
+            <MineStack.Screen name="MyCar" component={MyCarFunction} options={{ headerShown: false }} />
         </MineStack.Navigator>
     );
 }

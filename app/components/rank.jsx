@@ -115,6 +115,11 @@ export default function Rank() {
                         <Text style={styles.statValue}>{userInfo ? userInfo.userCoins : '-'}</Text>
                         <Text style={styles.statLabel}>金币</Text>
                     </View>
+                    {/* @todo: add diamond to userInfo */}
+                    <View style={styles.statItem}>
+                        <Text style={styles.statValue}>{userInfo ? userInfo.userDiamond : '-'}</Text>
+                        <Text style={styles.statLabel}>钻石</Text>
+                    </View>
                     <View style={styles.statItem}>
                         <Text style={styles.statValue}>{userInfo ? (userInfo.playingDuration > 3600 ? (userInfo.playingDuration / 60).toFixed(1) + "小时" : userInfo.playingDuration + "分钟") : '-'}</Text>
                         <Text style={styles.statLabel}>游玩时长</Text>

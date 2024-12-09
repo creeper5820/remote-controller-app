@@ -30,24 +30,24 @@ export default function LoginPage({ navigation }) {
         setLoginToken("aaaa");
         setLoginState('LOGIN_SUCCESS');
 
-        // try {
-        //     const axios = require('axios').default;
-        //     console.log('[LoginPage] handleLogin axios start');
-        //     const response = await axios.get(
-        //         `${BaseUrl}/api/login?username=${username}&password=${password}`
-        //     );
-        //     const { result, token } = response.data;
-        //     console.log('[LoginPage] handleLogin response result: [', result, ']', 'token: [', token, ']');
-        //     if (result === 200) {
-        //         setLoginToken(token);
-        //         setLoginState('LOGIN_SUCCESS');
-        //     } else if (result === 404) setLoginState('USER_NOT_FOUND');
-        //     else setLoginState('LOGIN_FAILED');
-        // } catch (error) {
-        //     setLoginError(error);
-        //     console.error('[LoginPage] handleLogin error', error);
-        //     setLoginState('NETWORK_ERROR');
-        // }
+        try {
+            const axios = require('axios').default;
+            console.log('[LoginPage] handleLogin axios start');
+            const response = await axios.get(
+                `${BaseUrl}/api/login?username=${username}&password=${password}`
+            );
+            const { result, token } = response.data;
+            console.log('[LoginPage] handleLogin response result: [', result, ']', 'token: [', token, ']');
+            if (result === 200) {
+                setLoginToken(token);
+                setLoginState('LOGIN_SUCCESS');
+            } else if (result === 404) setLoginState('USER_NOT_FOUND');
+            else setLoginState('LOGIN_FAILED');
+        } catch (error) {
+            setLoginError(error);
+            console.error('[LoginPage] handleLogin error', error);
+            setLoginState('NETWORK_ERROR');
+        }
     }
 
     useEffect(() => {
@@ -116,6 +116,15 @@ export default function LoginPage({ navigation }) {
                     break;
             }
         }
+
+        setRenderContent(
+            <Text style={[styles.successButton, styles.successText]} onPress={() => {
+                dispatch({ type: 'login', token: 'aaaa' });
+            }}>
+                仅测试，直接跳转至主页
+            </Text>
+        );
+
     }, [loginState, username, password]);
 
     return (

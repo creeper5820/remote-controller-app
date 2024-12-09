@@ -35,13 +35,19 @@ const categoryMappings = {
     }
 };
 
-function TopBar({ userCoins, userName, navigation }) {
+function TopBar({ userCoins, userDiamond, userName, navigation }) {
     userCoins = userCoins > 10000 ? (userCoins / 10000).toFixed(1) + '万' : userCoins
+    userDiamond = userDiamond > 10000 ? (userDiamond / 10000).toFixed(1) + '万' : userDiamond
+
+    if (!userCoins) userCoins = "--";
+    if (!userDiamond) userDiamond = "--";
+    if (!userName) userName = "--";
+
     return (
         <View style={styles.topBar}>
             <Image source={coinIcon} style={styles.topBarCarIcon} />
-            <Text onPress={() => navigation.navigate('Charge')} style={styles.topBarText}>我的金币: {userCoins}</Text>
-            <Text style={styles.topBarWelcomeText}>欢迎您， {userName}</Text>
+            <Text onPress={() => navigation.navigate('Charge')} style={styles.topBarText}>金币: {userCoins}  钻石：{userDiamond}</Text>
+            <Text style={styles.topBarWelcomeText}>欢迎您， {userName} </Text>
         </View>
     )
 }

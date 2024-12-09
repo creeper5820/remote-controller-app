@@ -50,7 +50,7 @@ export default function RechargeScreen() {
             .then(function (response) {
                 const data = response.data;
                 console.log("[chargepage] received data:", data);
-                Alert.alert('成功', `已选择${paymentMethod}支付 ${amount} 元，将获得 ${coins} 金币`);
+                Alert.alert('成功', `已选择${paymentMethod}支付 ${amount} 元，将获得 ${coins} 钻石`);
             })
             .catch(function (error) {
                 console.log("[chargepage] error:", error);
@@ -70,7 +70,7 @@ export default function RechargeScreen() {
             .then(function (response) {
                 const data = response.data;
                 console.log("[chargepage] received data:", data);
-                Alert.alert('成功', `兑换成功，请返回个人中心刷新查看您的金币`);
+                Alert.alert('成功', `兑换成功，请返回个人中心刷新查看您的钻石`);
             })
             .catch(function (error) {
                 console.log("[chargepage] error:", error);
@@ -88,7 +88,7 @@ export default function RechargeScreen() {
                 {value}元
             </Text>
             <Text style={[styles.coinText, amount === value && styles.selectedCoinText]}>
-                {calculateCoins(value)}金币
+                {calculateCoins(value)}钻石
             </Text>
         </TouchableOpacity>
     );
@@ -128,7 +128,7 @@ export default function RechargeScreen() {
 
                         {coins > 0 && (
                             <Text style={styles.customCoinText}>
-                                将获得 {coins} 金币
+                                将获得 {coins} 钻石
                             </Text>
                         )}
 
@@ -162,7 +162,7 @@ export default function RechargeScreen() {
                 ) : (
                     <>
                         <View style={styles.customAmountContainer}>
-                            <Text style={styles.customAmountLabel}>兑换码兑换金币</Text>
+                            <Text style={styles.customAmountLabel}>兑换码兑换钻石</Text>
                             <TextInput
                                 style={styles.customAmountInput}
                                 placeholder='输入兑换码'
